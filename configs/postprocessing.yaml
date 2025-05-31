@@ -1,0 +1,17 @@
+# Per-tile postprocessing
+postprocessing:
+  morphological:
+    min_component_area: 20
+    area_opening: 10
+    geodesic_dilation: 3
+  polygon:
+    rdp_epsilon: 1.5
+    concave_alpha: 0.8
+  geometric_checks:
+    min_aspect_ratio: 0.05
+    max_aspect_ratio: 20
+    solidity_threshold: 0.4
+  confidence:
+    char_weight: 0.7
+    affinity_weight: 0.3
+    contrast_factor: 10.0

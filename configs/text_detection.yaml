@@ -1,0 +1,26 @@
+# Text detection configuration
+
+text_detection:
+  # CRAFT model parameters
+  model_path: "models/craft_mlt_25k.pth"  # Path to pretrained CRAFT model
+  backbone: "efficientnet-b3"             # Backbone architecture
+  use_coordconv: true                     # Use CoordConv layers
+  use_aspp: true                          # Use ASPP module
+  
+  # Inference parameters
+  device: "cuda:0"                        # Device for inference (cuda:0 or cpu)
+  batch_size: 4                           # Batch size for inference
+  
+  # Preprocessing parameters
+  normalize: true                         # Normalize images with ImageNet mean and std
+  mean: [0.485, 0.456, 0.406]             # ImageNet mean
+  std: [0.229, 0.224, 0.225]              # ImageNet std
+  border_mask: 15                         # Border mask size to reduce false detections at boundaries
+  
+  # Postprocessing parameters
+  heatmap_quantization: false             # Quantize heatmaps to uint8
+  confidence_threshold: 0.5               # Minimum confidence for text regions
+  text_threshold: 0.7                     # Threshold for text regions
+  link_threshold: 0.4                     # Threshold for link regions
+  low_text: 0.4                           # Low text threshold
+  poly_threshold: 0.4                     # Polygon approximation threshold

@@ -1,0 +1,21 @@
+# Global merge configuration
+grouping:
+  spatial_index:
+    type: "rtree"  # "quadtree" or "grid"
+    bulk_loading: True
+  candidate_generation:
+    search_radius_factor: 3.0
+    max_angle_diff: 15
+    min_neighbors: 2
+  dbscan:
+    eps_base: 20.0
+    eps_density_factor: 0.8
+    min_samples: 2
+  merging:
+    max_gap_factor: 1.5
+    min_group_size: 2
+  conflict:
+    nms_iou_threshold: 0.4
+    partial_merge_boost: 0.15
+  text_line:
+    baseline_alignment_threshold: 5.0
