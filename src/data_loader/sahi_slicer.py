@@ -7,7 +7,6 @@ from typing import List, Tuple, Dict, Any, cast, Iterable
 from dataclasses import dataclass
 from sahi.slicing import slice_image
 import yaml
-import hashlib
 
 
 @dataclass
@@ -56,7 +55,7 @@ class SahiSlicer:
             raise FileNotFoundError(f"Image not found: {image_path}")
 
         # Generate unique identifier for this slicing operation
-        source_id = self._generate_source_id(image_path)
+        # source_id = self._generate_source_id(image_path)
 
         # Open and validate image
         with Image.open(image_path) as img:
@@ -93,7 +92,8 @@ class SahiSlicer:
             tile_img = np.array(slice_dict["image"])
 
             # Create metadata
-            tile_id = f"{source_id}_T{idx:04d}"
+            base_name = os.path.splitext(os.path.basename(image_path))[0]
+            tile_id = f"{base_name}_T{idx:04d}"
 
             # Get the width and height of the tile from numpy array shape
             # For numpy arrays, shape is (height, width, channels)
@@ -145,8 +145,9 @@ class SahiSlicer:
 
         return tiles, metadata_list
 
-    def _generate_source_id(self, image_path: str) -> str:
-        """Generate unique ID based on image content and slicing parameters"""
+    """
+        def _generate_source_id(self, image_path: str) -> str:
+        # Generate unique ID based on image content and slicing parameters
         with open(image_path, "rb") as f:
             file_hash = hashlib.md5(f.read()).hexdigest()
 
@@ -155,6 +156,8 @@ class SahiSlicer:
         ).hexdigest()[:8]
 
         return f"{os.path.basename(image_path)[:10]}_{file_hash[:6]}_{config_hash}"
+    """
+
 
     def save_metadata(self, metadata_list: List[TileMetadata], output_path: str):
         """Save metadata to YAML file"""
@@ -204,7 +207,7 @@ if __name__ == "__main__":
 
     # Define configuration for the slicer
     config = {
-        "tile_size": 1440,
+        "tile_size": 1024,
         "overlap_ratio": 0.3,
         "min_area_ratio": 0.1,
         "verbose": True
@@ -215,7 +218,7 @@ if __name__ == "__main__":
 
     # Get all image files from data/raw folder
     raw_dir = os.path.join("data", "raw")
-    image_files = glob.glob(os.path.join(raw_dir, "*.jpg")) + glob.glob(os.path.join(raw_dir, "*.png"))
+    image_files = glob.glob(os.path.join(raw_dir, "*.jpg")) + glob.glob(os.path.join(raw_dir, "*.png")) + glob.glob(os.path.join(raw_dir, "*.tiff"))
 
     if not image_files:
         print(f"Error: No image files found in {raw_dir}")
@@ -245,13 +248,13 @@ if __name__ == "__main__":
                 slicer.save_metadata(metadata, metadata_path)
                 print(f"Metadata saved to {metadata_path}")
 
-                # Save the first few tiles as individual image files
-                num_tiles_to_save = min(50, len(tiles))
-                for i in range(num_tiles_to_save):
+                # Save ALL tiles
+                total_tiles = len(tiles)
+                for i in range(total_tiles):
                     tile_img = Image.fromarray(tiles[i])
                     tile_path = os.path.join(output_dir, f"tile_{metadata[i].tile_id}.png")
                     tile_img.save(tile_path)
-                    print(f"Saved tile {i+1}/{num_tiles_to_save} to {tile_path}")
+                    print(f"Saved tile {i + 1}/{total_tiles} to {tile_path}")
 
             except Exception as e:
                 print(f"Error processing image {image_path}: {str(e)}")

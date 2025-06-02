@@ -4,31 +4,26 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3cda8e01-a2d5-4f88-ab9f-b6d0a9d1f64d" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/P&amp;ID text extraction pipeline.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Dockerfile" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/configs/base.yaml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/configs/grouping.yaml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/configs/ocr.yaml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/configs/postprocessing.yaml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/configs/text_detection.yaml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/data_loader/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/data_loader/metadata_manager.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/data_loader/sahi_slicer.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/pipeline_runner.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/pipeline_runner.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/utils/config_loader.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/utils/visualization.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/unit/test_postprocessing.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/unit/text_detection/test_text_detection.py" afterDir="false" />
+    <list default="true" id="3cda8e01-a2d5-4f88-ab9f-b6d0a9d1f64d" name="Changes" comment="LGTM">
+      <change afterPath="$PROJECT_DIR$/folder_tree_maker.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/grouping/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/grouping/filter_by_core.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/grouping/visualize_core_detections.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/text_detection/ocr_detector.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/text_detection/process_tiles_ocr.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/configs/base.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/configs/base.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/configs/ocr.yaml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/configs/text_detection.yaml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/data_loader/metadata_manager.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/data_loader/metadata_manager.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/data_loader/sahi_slicer.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/data_loader/sahi_slicer.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/pipeline_runner.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/pipeline_runner.py" beforeDir="false" afterPath="$PROJECT_DIR$/PDF_to_image.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/utils/config_loader.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/utils/visualization.py" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -45,9 +40,21 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 2
-}]]></component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;ExMonsterJoker&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/fcakyon/craft-text-detector&quot;,
+    &quot;accountId&quot;: &quot;71f0fb15-f337-479b-be0f-0beae9847bda&quot;
+  }
+}</component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 2
+}</component>
   <component name="ProjectId" id="2xpxIKwH1QJUQUf3KfRcerj86rT" />
   <component name="ProjectLevelVcsManager">
     <ConfirmationsSetting value="2" id="Add" />
@@ -62,21 +69,36 @@
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "Python tests.Python tests in test_metadata_manager.py.executor": "Run",
     "Python tests.Python tests in test_sahi_slicer.py.executor": "Run",
+    "Python.PDF_to_image.executor": "Run",
+    "Python.folder_tree_maker.executor": "Run",
+    "Python.metadata_manager.executor": "Run",
+    "Python.ocr_detector.executor": "Run",
+    "Python.process_tiles_ocr.executor": "Run",
+    "Python.run_text_detection.executor": "Run",
     "Python.sahi_slicer.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "git-widget-placeholder": "master",
     "ignore.virus.scanning.warn.message": "true",
+    "ignore_missing_gitignore": "true",
     "junie.onboarding.icon.badge.shown": "true",
+    "last_opened_file_path": "D:/OneDrive/Radiant Utama/Personal Project/PID Analyzer/Docker PID/P&ID text extraction pipeline/src",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
+    "run.code.analysis.last.selected.profile": "pProject Default",
+    "settings.editor.selected.configurable": "settings.sync",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="D:\OneDrive\Radiant Utama\Personal Project\PID Analyzer\Docker PID\P&amp;ID text extraction pipeline\src" />
+    </key>
+  </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
@@ -92,15 +114,39 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1748648735380</updated>
-      <workItem from="1748648736468" duration="11367000" />
+      <workItem from="1748648736468" duration="13728000" />
+      <workItem from="1748670727639" duration="6047000" />
+      <workItem from="1748755382763" duration="7057000" />
+      <workItem from="1748766638904" duration="1683000" />
+      <workItem from="1748781723185" duration="5385000" />
+      <workItem from="1748822979010" duration="3281000" />
     </task>
+    <task id="LOCAL-00001" summary="LGTM">
+      <option name="closed" value="true" />
+      <created>1748665002460</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1748665002460</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
   </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="LGTM" />
+    <option name="LAST_COMMIT_MESSAGE" value="LGTM" />
+  </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/P_ID_text_extraction_pipeline$folder_tree_maker.coverage" NAME="folder_tree_maker Coverage Results" MODIFIED="1748783559843" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/P_ID_text_extraction_pipeline$metadata_manager.coverage" NAME="metadata_manager Coverage Results" MODIFIED="1748757269877" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/data_loader" />
     <SUITE FILE_PATH="coverage/P_ID_text_extraction_pipeline$sahi_slicer.coverage" NAME="sahi_slicer Coverage Results" MODIFIED="1748659715497" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/data_loader" />
+    <SUITE FILE_PATH="coverage/P_ID_text_extraction_pipeline$process_tiles_ocr.coverage" NAME="process_tiles_ocr Coverage Results" MODIFIED="1748759030433" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/text_detection" />
     <SUITE FILE_PATH="coverage/P_ID_text_extraction_pipeline$.coverage" NAME=" Coverage Results" MODIFIED="1748658360637" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests/unit/data_loader" />
+    <SUITE FILE_PATH="coverage/P_ID_text_extraction_pipeline$run_text_detection.coverage" NAME="run_text_detection Coverage Results" MODIFIED="1748758708975" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/text_detection" />
+    <SUITE FILE_PATH="coverage/P_ID_text_extraction_pipeline$PDF_to_image.coverage" NAME="PDF_to_image Coverage Results" MODIFIED="1748824172382" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/P_ID_text_extraction_pipeline$ocr_detector.coverage" NAME="ocr_detector Coverage Results" MODIFIED="1748759262647" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/text_detection" />
   </component>
 </project>
