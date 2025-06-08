@@ -1,21 +1,16 @@
-# Global merge configuration
-grouping:
-  spatial_index:
-    type: "rtree"  # "quadtree" or "grid"
-    bulk_loading: True
-  candidate_generation:
-    search_radius_factor: 3.0
-    max_angle_diff: 15
-    min_neighbors: 2
-  dbscan:
-    eps_base: 20.0
-    eps_density_factor: 0.8
-    min_samples: 2
-  merging:
-    max_gap_factor: 1.5
-    min_group_size: 2
-  conflict:
-    nms_iou_threshold: 0.4
-    partial_merge_boost: 0.15
-  text_line:
-    baseline_alignment_threshold: 5.0
+# Existing parameters
+height_tolerance: 0.2
+width_tolerance: 0.2
+proximity_factor: 2.5
+confidence_threshold: 0.3
+max_dimension_expansion: 1.5
+
+# New irregular box filtering parameters
+filter_irregular_boxes: true
+horizontal_aspect_ratio_threshold: 1  # For 0° text: width/height >= 0.5
+vertical_aspect_ratio_threshold: 1     # For 90° text: height/width >= 2.0
+
+# Project paths
+tile_metadata_dir: "data/processed/metadata/tile_metadata"
+detection_metadata_dir: "data/processed/metadata/detection_metadata"
+output_dir: "data/processed/metadata/group_detection_metadata"

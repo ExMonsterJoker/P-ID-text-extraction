@@ -3,6 +3,8 @@ import os
 import json
 from dataclasses import asdict, dataclass
 from typing import List, Dict, Any, Optional, Tuple
+import numpy as np
+from pathlib import Path
 
 # Handle imports for both package and direct script execution
 try:
@@ -404,7 +406,6 @@ if __name__ == "__main__":
 
     # Add the project root to the Python path to enable absolute imports
     sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
-
     from src.data_loader.sahi_slicer import SahiSlicer
     from src.data_loader.metadata_manager import MetadataManager  # Ensure MetadataManager is imported
     import datetime

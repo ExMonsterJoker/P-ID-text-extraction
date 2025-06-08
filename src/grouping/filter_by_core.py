@@ -1,7 +1,10 @@
+# In src/grouping/filter_by_core.py
+
 import os
 import json
 import logging
 from glob import glob
+import numpy as np # Make sure to import numpy
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(message)s')
@@ -30,9 +33,10 @@ def load_core_metadata(core_meta_dir):
     return core_map
 
 
-def filter_tile_detections(base, tile_id, core_coords, det_meta_dir):
+def filter_tile_detections(base, tile_id, core_coords, det_meta_dir, min_area_ratio=0.5):
     """
-    Load OCR detections for a tile, filter by core, return kept detections list.
+    Load OCR detections for a tile and filter them based on their overlap with the core region.
+    A detection is kept if its intersection with the core region is >= min_area_ratio of its total area.
     """
     fname = f"{base}_{tile_id}_ocr.json"
     path = os.path.join(det_meta_dir, fname)
@@ -46,24 +50,61 @@ def filter_tile_detections(base, tile_id, core_coords, det_meta_dir):
         logging.error(f"Error reading {fname}: {e}")
         return []
 
-    x0, y0, x1, y1 = core_coords
     kept = []
     for det in detections:
         try:
-            tx0, ty0, _, _ = det.get('tile_coordinates', [0, 0, 0, 0])
-            quad = det.get('bbox', [])
-            if len(quad) != 4:
+            tile_coords = det.get('tile_coordinates', [0, 0, 0, 0])
+            bbox_tile = det.get('bbox', [])  # Bbox relative to the tile
+            if len(bbox_tile) != 4:
                 continue
-            quad_orig = [[p[0] + tx0, p[1] + ty0] for p in quad]
-            cx = sum(p[0] for p in quad_orig) / 4.0
-            cy = sum(p[1] for p in quad_orig) / 4.0
-            if x0 <= cx < x1 and y0 <= cy < y1:
-                det['bbox_original'] = quad_orig
+
+            # Bbox in global image coordinates
+            bbox_global = [[p[0] + tile_coords[0], p[1] + tile_coords[1]] for p in bbox_tile]
+
+            # Calculate detection area (using shoelace formula for polygon area)
+            x, y = zip(*bbox_global)
+            detection_area = 0.5 * np.abs(np.dot(x, np.roll(y, 1)) - np.dot(y, np.roll(x, 1)))
+            if detection_area == 0:
+                continue
+
+            # Calculate intersection area with the core tile region
+            intersection_area = get_intersection_area(bbox_global, core_coords)
+
+            # Keep the detection if it has sufficient overlap with the core region
+            if (intersection_area / detection_area) > min_area_ratio:
+                det['bbox_original'] = bbox_global  # Add the global coordinates for the next step
                 kept.append(det)
         except Exception as e:
             logging.warning(f"Error processing detection in {fname}: {e}")
             continue
+
     return kept
+
+
+def get_intersection_area(box, core_coords):
+    """Calculates the area of intersection between a detection box and a core region."""
+    # box is [[x1,y1], [x2,y2], [x3,y3], [x4,y4]]
+    # core_coords is (x0, y0, x1, y1)
+
+    # Convert box to a simple min/max rectangle for intersection calculation
+    min_x = min(p[0] for p in box)
+    max_x = max(p[0] for p in box)
+    min_y = min(p[1] for p in box)
+    max_y = max(p[1] for p in box)
+
+    core_x0, core_y0, core_x1, core_y1 = core_coords
+
+    # Find the intersection rectangle
+    inter_x0 = max(min_x, core_x0)
+    inter_y0 = max(min_y, core_y0)
+    inter_x1 = min(max_x, core_x1)
+    inter_y1 = min(max_y, core_y1)
+
+    # Calculate intersection area
+    inter_width = max(0, inter_x1 - inter_x0)
+    inter_height = max(0, inter_y1 - inter_y0)
+
+    return inter_width * inter_height
 
 
 def main():

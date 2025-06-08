@@ -282,7 +282,7 @@ if __name__ == "__main__":
         "tiles_base_dir": "data/processed/tiles",
         "metadata_output_dir": "data/processed/metadata",
         "languages": ['en'],  # Add more languages as needed: ['en', 'ch_sim', 'th', 'ja', 'ko']
-        "confidence_threshold": 0.1,
+        "confidence_threshold": 0.3,
         "gpu": True,
         "use_rotation": True,  # Enable rotation detection
         "filter_overlaps": True,  # Filter overlapping detections from different rotations

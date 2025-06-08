@@ -3,7 +3,7 @@ pipeline:
   input_dir: "data/raw"
   output_dir: "data/outputs"
   tile_size: 1024
-  overlap_ratio: 0.3
+  overlap_ratio: 0.5
   min_text_height: 6
   max_text_height: 100
   device: "cuda:0"  # or "cpu"
@@ -11,5 +11,11 @@ pipeline:
   debug_visualization: True
 
 data_loader:
-  sahi_slicer_output_dir: "data/outputs/data_loader/slice"
-  metadata_output_dir: "data/outputs/data_loader/metadata"
+  sahi_slicer_output_dir: "data/processed/tiles"
+  metadata_output_dir: "data/processed/metadata"
+  tile_metadata_dir : "data/processed/metadata/tile_metadata"
+  group_detection_metadata_dir : "data/processed/metadata/group_detection_metadata"
+  global_metadata_dir : "data/processed/metadata/global_metadata"
+  detection_metadata_dir : "data/processed/metadata/detection_metadata"
+  core_tile_metadata_dir : "data/processed/metadata/core_tile_metadata"
+  core_detection_metadata_dir : "data/processed/metadata/core_detection_metadata"

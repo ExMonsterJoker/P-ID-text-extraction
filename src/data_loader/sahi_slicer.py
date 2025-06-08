@@ -1,12 +1,16 @@
 # src/data_loader/sahi_slicer.py
 
+from PIL import Image
+import PIL
 import os
 import numpy as np
-from PIL import Image
 from typing import List, Tuple, Dict, Any, cast, Iterable
 from dataclasses import dataclass
 from sahi.slicing import slice_image
 import yaml
+# Disable PIL image size limits at module level
+Image.MAX_IMAGE_PIXELS = None
+PIL.Image.MAX_IMAGE_PIXELS = None
 
 
 @dataclass
@@ -207,11 +211,23 @@ if __name__ == "__main__":
 
     # Define configuration for the slicer
     config = {
-        "tile_size": 1024,
-        "overlap_ratio": 0.3,
+        "tile_size": 1080,
+        "overlap_ratio": 0.5,
         "min_area_ratio": 0.1,
         "verbose": True
     }
+
+
+    os.makedirs("data/processed/tiles", exist_ok=True)
+    os.makedirs("data/processed/metadata", exist_ok=True)
+    os.makedirs("data/processed/metadata/tile_metadata", exist_ok=True)
+    os.makedirs("data/processed/metadata/group_detection_metadata", exist_ok=True)
+    os.makedirs("data/processed/metadata/global_metadata", exist_ok=True)
+    os.makedirs("data/processed/metadata/detection_metadata", exist_ok=True)
+    os.makedirs("data/processed/metadata/core_tile_metadata", exist_ok=True)
+    os.makedirs("data/processed/metadata/core_detection_metadata", exist_ok=True)
+
+
 
     # Initialize the slicer
     slicer = SahiSlicer(config)
