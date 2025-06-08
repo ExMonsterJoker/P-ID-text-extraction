@@ -5,90 +5,20 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="3cda8e01-a2d5-4f88-ab9f-b6d0a9d1f64d" name="Changes" comment="LGTM">
-      <change afterPath="$PROJECT_DIR$/src/grouping/run_grouping_pipeline.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/debug_visualize_tiles.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/run_pipeline.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/grouping/visualize_final_groups.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/P&amp;ID text extraction pipeline.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/P&amp;ID text extraction pipeline.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/configs/base.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/configs/base.yaml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/configs/grouping.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/configs/grouping.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-OTPF03GS000-PRO-PFD-IBU-0013-00.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-OTPF03GS000-PRO-PID-IBU-0007-00.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-OTPF03GS000-PRO-PID-IBU-0007-01.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-OTPF03GS000-PRO-PID-IBU-0007-02.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-OTPF03GS000-PRO-PID-IBU-0007-03.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-OTPF03GS000-PRO-PID-IBU-0009-00.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-OTPF03GS000-PRO-PID-IBU-0011-00.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-OTPF03GS000-PRO-PID-IBU-0013-00.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-OTPF03GS000-PRO-PID-IBU-0017-00.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-OTPF03GS000-PRO-PID-IBU-0018-00.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-OTPF03GS000-PRO-PID-IBU-0020-00.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-OTPF03GS000-PRO-PID-IBU-0028-00.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-OTPF03GS000-PRO-PID-IBU-0038-00.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-OTPF03GS000-PRO-PID-IBU-0039-00.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-OTPF03GS000-PRO-PID-IBU-0066-00.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-OTPF03GS000-PRO-PID-IBU-0068-00.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-OTPF03GS000-PRO-PID-IBU-0077-00.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-OTPF03GS000-PRO-PID-IBU-0077-01.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-OTPF03GS000-PRO-PID-IBU-0088-00.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-OTPF03GS000-PRO-PID-IBU-0091-00.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-OTPF03GS000-PRO-PID-IBU-0101-00.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-OTPF03GS000-PRO-PID-IBU-0112-00.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-OTPF03GS000-PRO-PID-IBU-0112-01.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-OTPF03GS000-PRO-PID-IBU-0114-00.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-OTPF03GS000-PRO-PID-IBU-0115-00.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-OTPF03GS000-PRO-PID-IBU-0116-00.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-OTPF03GS000-PRO-PID-IBU-0117-00.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-OTPF03GS000-PRO-PID-IBU-0120-00.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-OTPF03GS000-PRO-PID-IBU-0122-00.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-WTPF03GS000-PRO-PFD-IBU-0003-00.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-WTPF03GS000-PRO-PID-IBU-0001-00.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-WTPF03GS000-PRO-PID-IBU-0005-00.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-WTPF03GS000-PRO-PID-IBU-0008-00.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-WTPF03GS000-PRO-PID-IBU-0016-00.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-WTPF03GS000-PRO-PID-IBU-0027-00.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-WTPF03GS000-PRO-PID-IBU-0027-01.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-WTPF03GS000-PRO-PID-IBU-0027-02.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-WTPF03GS000-PRO-PID-IBU-0027-03.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-WTPF03GS000-PRO-PID-IBU-0027-04.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-WTPF03GS000-PRO-PID-IBU-0027-05.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-WTPF03GS000-PRO-PID-IBU-0027-06.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-WTPF03GS000-PRO-PID-IBU-0027-07.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-WTPF03GS000-PRO-PID-IBU-0027-08.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-WTPF03GS000-PRO-PID-IBU-0027-09.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-WTPF03GS000-PRO-PID-IBU-0027-10.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-WTPF03GS000-PRO-PID-IBU-0027-11.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-WTPF03GS000-PRO-PID-IBU-0027-12.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-WTPF03GS000-PRO-PID-IBU-0027-13.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-WTPF03GS000-PRO-PID-IBU-0027-14.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-WTPF03GS000-PRO-PID-IBU-0027-15.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-WTPF03GS000-PRO-PID-IBU-0035-00.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-WTPF03GS000-PRO-PID-IBU-0039-00.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-WTPF03GS000-PRO-PID-IBU-0039-01.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-WTPF03GS000-PRO-PID-IBU-0046-00.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-WTPF03GS000-PRO-PID-IBU-0047-00.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-WTPF03GS000-PRO-PID-IBU-0050-00.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-WTPF03GS000-PRO-PID-IBU-0050-01.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-WTPF03GS000-PRO-PID-IBU-0053-00.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-WTPF03GS000-PRO-PID-IBU-0053-01.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-WTPF03GS000-PRO-PID-IBU-0057-00.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-WTPF03GS000-PRO-PID-IBU-0058-00.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-WTPF03GS000-PRO-PID-IBU-0060-00.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-WTPF03GS000-PRO-PID-IBU-0063-00.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-WTPF03GS000-PRO-PID-IBU-0065-00.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-WTPF03GS000-PRO-PID-IBU-0067-00.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-WTPF03GS000-PRO-PID-IBU-0069-00.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-WTPF03GS000-PRO-PID-IBU-0070-00.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/raw/DURI-WTPF03GS000-PRO-PID-IBU-0070-01.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/folder_tree_maker.py" beforeDir="false" afterPath="$PROJECT_DIR$/folder_tree_maker.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/data_loader/metadata_manager.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/data_loader/metadata_manager.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/data_loader/sahi_slicer.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/data_loader/sahi_slicer.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/grouping/bbox_grouper.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/grouping/bbox_grouper.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/grouping/filter_by_core.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/grouping/filter_by_core.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/grouping/group_bboxes.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/grouping/group_bboxes.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/grouping/visualize_core_detections.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/grouping/visualize_core_detections.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/grouping/group_bboxes.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/grouping/run_grouping_pipeline.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/grouping/run_grouping_pipeline.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/grouping/visualize_core_detections.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/text_detection/ocr_detector.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/text_detection/ocr_detector.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/text_detection/process_tiles_ocr.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/text_detection/process_tiles_ocr.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -104,6 +34,7 @@
     </option>
   </component>
   <component name="Git.Settings">
+    <option name="PUSH_AUTO_UPDATE" value="true" />
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="GitHubPullRequestSearchHistory">{
@@ -136,42 +67,45 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ASKED_SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;Python tests.Python tests in test_metadata_manager.py.executor&quot;: &quot;Run&quot;,
-    &quot;Python tests.Python tests in test_sahi_slicer.py.executor&quot;: &quot;Run&quot;,
-    &quot;Python.PDF_to_image.executor&quot;: &quot;Run&quot;,
-    &quot;Python.folder_tree_maker.executor&quot;: &quot;Run&quot;,
-    &quot;Python.metadata_manager.executor&quot;: &quot;Run&quot;,
-    &quot;Python.ocr_detector.executor&quot;: &quot;Run&quot;,
-    &quot;Python.process_tiles_ocr.executor&quot;: &quot;Run&quot;,
-    &quot;Python.run_text_detection.executor&quot;: &quot;Run&quot;,
-    &quot;Python.sahi_slicer.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
-    &quot;ignore_missing_gitignore&quot;: &quot;true&quot;,
-    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;D:/Stuff/P&amp;ID text extraction pipeline&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;run.code.analysis.last.selected.profile&quot;: &quot;pProject Default&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ASKED_SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "Python tests.Python tests in test_metadata_manager.py.executor": "Run",
+    "Python tests.Python tests in test_sahi_slicer.py.executor": "Run",
+    "Python.PDF_to_image.executor": "Run",
+    "Python.folder_tree_maker.executor": "Run",
+    "Python.metadata_manager.executor": "Run",
+    "Python.ocr_detector.executor": "Run",
+    "Python.process_tiles_ocr.executor": "Run",
+    "Python.run_text_detection.executor": "Run",
+    "Python.sahi_slicer.executor": "Run",
+    "Python.visualize_final_groups.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "git-widget-placeholder": "main",
+    "ignore.virus.scanning.warn.message": "true",
+    "ignore_missing_gitignore": "true",
+    "junie.onboarding.icon.badge.shown": "true",
+    "last_opened_file_path": "D:/Stuff/P&ID text extraction pipeline",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "run.code.analysis.last.selected.profile": "pProject Default",
+    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="D:\OneDrive\Radiant Utama\Personal Project\PID Analyzer\Docker PID\P&amp;ID text extraction pipeline\src" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\Stuff\P&amp;ID text extraction pipeline" />
+      <recent name="D:\Stuff\P&amp;ID text extraction pipeline\src" />
       <recent name="D:\Stuff\P&amp;ID text extraction pipeline\data\raw" />
       <recent name="D:\Stuff\P&amp;ID text extraction pipeline\data\test" />
     </key>
@@ -209,7 +143,8 @@
       <workItem from="1749046377566" duration="1884000" />
       <workItem from="1749048295532" duration="628000" />
       <workItem from="1749177252201" duration="48000" />
-      <workItem from="1749343348024" duration="4898000" />
+      <workItem from="1749343348024" duration="8484000" />
+      <workItem from="1749356027498" duration="8440000" />
     </task>
     <task id="LOCAL-00001" summary="LGTM">
       <option name="closed" value="true" />
@@ -219,7 +154,15 @@
       <option name="project" value="LOCAL" />
       <updated>1748665002460</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="LGTM">
+      <option name="closed" value="true" />
+      <created>1749348580183</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1749348580183</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -247,7 +190,8 @@
     <SUITE FILE_PATH="coverage/P_ID_text_extraction_pipeline$process_tiles_ocr.coverage" NAME="process_tiles_ocr Coverage Results" MODIFIED="1748759030433" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/text_detection" />
     <SUITE FILE_PATH="coverage/P_ID_text_extraction_pipeline$.coverage" NAME=" Coverage Results" MODIFIED="1748658360637" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests/unit/data_loader" />
     <SUITE FILE_PATH="coverage/P_ID_text_extraction_pipeline$run_text_detection.coverage" NAME="run_text_detection Coverage Results" MODIFIED="1748758708975" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/text_detection" />
-    <SUITE FILE_PATH="coverage/P_ID_text_extraction_pipeline$PDF_to_image.coverage" NAME="PDF_to_image Coverage Results" MODIFIED="1748824172382" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/P_ID_text_extraction_pipeline$PDF_to_image.coverage" NAME="PDF_to_image Coverage Results" MODIFIED="1749358284597" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/P_ID_text_extraction_pipeline$ocr_detector.coverage" NAME="ocr_detector Coverage Results" MODIFIED="1748759262647" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/text_detection" />
+    <SUITE FILE_PATH="coverage/P_ID_text_extraction_pipeline$visualize_final_groups.coverage" NAME="visualize_final_groups Coverage Results" MODIFIED="1749358067508" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/grouping" />
   </component>
 </project>

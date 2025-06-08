@@ -4,15 +4,12 @@ import os
 import json
 import logging
 from glob import glob
-import numpy as np # Make sure to import numpy
+import numpy as np
+from shapely.geometry import Polygon, box
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(message)s')
 
-# Fixed paths based on project structure
-CORE_META_DIR = "data/processed/metadata/core_tile_metadata"
-DET_META_DIR = "data/processed/metadata/detection_metadata"
-OUT_DIR = "data/processed/metadata/core_detection_metadata"
 
 def load_core_metadata(core_meta_dir):
     """
@@ -26,20 +23,37 @@ def load_core_metadata(core_meta_dir):
             with open(fn, 'r') as f:
                 meta = json.load(f)
             base = os.path.splitext(os.path.basename(meta['source_image']))[0]
-            tile_map = { tile['tile_id']: tile['core_coordinates'] for tile in meta['core_tiles'] }
+            tile_map = {tile['tile_id']: tile['core_coordinates'] for tile in meta['core_tiles']}
             core_map[base] = tile_map
         except Exception as e:
             logging.error(f"Failed to process {fn}: {e}")
     return core_map
 
 
-def filter_tile_detections(base, tile_id, core_coords, det_meta_dir, min_area_ratio=0.5):
+def get_intersection_area_shapely(detection_polygon: Polygon, core_coords: tuple) -> float:
+    """
+    Calculates the precise area of intersection between a detection polygon and a core region using Shapely.
+    """
+    if not detection_polygon.is_valid:
+        return 0.0
+    core_box = box(core_coords[0], core_coords[1], core_coords[2], core_coords[3])
+    intersection = detection_polygon.intersection(core_box)
+    return intersection.area
+
+
+def filter_tile_detections(base, tile_id, core_coords, det_meta_dir, min_area_ratio=0.1):
     """
     Load OCR detections for a tile and filter them based on their overlap with the core region.
-    A detection is kept if its intersection with the core region is >= min_area_ratio of its total area.
     """
-    fname = f"{base}_{tile_id}_ocr.json"
+    # FIX: The filename construction now uses only the tile_id, as it is
+    # already globally unique and matches the new format from metadata_manager.py.
+    # The 'base' parameter is no longer needed to construct the filename.
+    #
+    # Old line: fname = f"{base}_{tile_id}_ocr.json"
+    #
+    fname = f"{tile_id}_ocr.json"
     path = os.path.join(det_meta_dir, fname)
+
     if not os.path.exists(path):
         logging.warning(f"Missing detection file: {fname}")
         return []
@@ -54,25 +68,22 @@ def filter_tile_detections(base, tile_id, core_coords, det_meta_dir, min_area_ra
     for det in detections:
         try:
             tile_coords = det.get('tile_coordinates', [0, 0, 0, 0])
-            bbox_tile = det.get('bbox', [])  # Bbox relative to the tile
-            if len(bbox_tile) != 4:
+            bbox_tile = det.get('bbox', [])
+            if len(bbox_tile) < 3:
                 continue
 
-            # Bbox in global image coordinates
             bbox_global = [[p[0] + tile_coords[0], p[1] + tile_coords[1]] for p in bbox_tile]
 
-            # Calculate detection area (using shoelace formula for polygon area)
-            x, y = zip(*bbox_global)
-            detection_area = 0.5 * np.abs(np.dot(x, np.roll(y, 1)) - np.dot(y, np.roll(x, 1)))
+            detection_polygon = Polygon(bbox_global)
+            detection_area = detection_polygon.area
+
             if detection_area == 0:
                 continue
 
-            # Calculate intersection area with the core tile region
-            intersection_area = get_intersection_area(bbox_global, core_coords)
+            intersection_area = get_intersection_area_shapely(detection_polygon, core_coords)
 
-            # Keep the detection if it has sufficient overlap with the core region
             if (intersection_area / detection_area) > min_area_ratio:
-                det['bbox_original'] = bbox_global  # Add the global coordinates for the next step
+                det['bbox_original'] = bbox_global
                 kept.append(det)
         except Exception as e:
             logging.warning(f"Error processing detection in {fname}: {e}")
@@ -81,34 +92,12 @@ def filter_tile_detections(base, tile_id, core_coords, det_meta_dir, min_area_ra
     return kept
 
 
-def get_intersection_area(box, core_coords):
-    """Calculates the area of intersection between a detection box and a core region."""
-    # box is [[x1,y1], [x2,y2], [x3,y3], [x4,y4]]
-    # core_coords is (x0, y0, x1, y1)
-
-    # Convert box to a simple min/max rectangle for intersection calculation
-    min_x = min(p[0] for p in box)
-    max_x = max(p[0] for p in box)
-    min_y = min(p[1] for p in box)
-    max_y = max(p[1] for p in box)
-
-    core_x0, core_y0, core_x1, core_y1 = core_coords
-
-    # Find the intersection rectangle
-    inter_x0 = max(min_x, core_x0)
-    inter_y0 = max(min_y, core_y0)
-    inter_x1 = min(max_x, core_x1)
-    inter_y1 = min(max_y, core_y1)
-
-    # Calculate intersection area
-    inter_width = max(0, inter_x1 - inter_x0)
-    inter_height = max(0, inter_y1 - inter_y0)
-
-    return inter_width * inter_height
-
-
 def main():
+    CORE_META_DIR = "data/processed/metadata/core_tile_metadata"
+    DET_META_DIR = "data/processed/metadata/detection_metadata"
+    OUT_DIR = "data/processed/metadata/core_detection_metadata"
     os.makedirs(OUT_DIR, exist_ok=True)
+
     core_map = load_core_metadata(CORE_META_DIR)
 
     for base, tiles in core_map.items():

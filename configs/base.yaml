@@ -19,3 +19,7 @@ data_loader:
   detection_metadata_dir : "data/processed/metadata/detection_metadata"
   core_tile_metadata_dir : "data/processed/metadata/core_tile_metadata"
   core_detection_metadata_dir : "data/processed/metadata/core_detection_metadata"
+
+# in configs/base.yaml
+# A good starting point. Increase if you have more VRAM.
+  # ... other ocr settings from run_pipeline.py if you want them here

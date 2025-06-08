@@ -1,16 +1,31 @@
-# Existing parameters
-height_tolerance: 0.2
-width_tolerance: 0.2
-proximity_factor: 2.5
-confidence_threshold: 0.3
-max_dimension_expansion: 1.5
+# --- Filtering Parameters ---
+# These control the de-duplication and pre-filtering logic.
+filtering:
+  # The minimum ratio of a detection's area that must be in a tile's "core"
+  # non-overlapping region to be kept.
+  # Lower this if text fragments at tile edges are being discarded.
+  min_core_area_ratio: 0.01
 
-# New irregular box filtering parameters
-filter_irregular_boxes: true
-horizontal_aspect_ratio_threshold: 1  # For 0° text: width/height >= 0.5
-vertical_aspect_ratio_threshold: 1     # For 90° text: height/width >= 2.0
+  # The IoU threshold for the pre-grouping filter.
+  # This removes smaller, nested detections inside larger ones.
+  pre_group_iou_threshold: 0.01
 
-# Project paths
-tile_metadata_dir: "data/processed/metadata/tile_metadata"
-detection_metadata_dir: "data/processed/metadata/detection_metadata"
-output_dir: "data/processed/metadata/group_detection_metadata"
+
+# --- Grouping Parameters ---
+# These control how individual text boxes are grouped into lines.
+grouping:
+  # Maximum allowed height difference between two boxes to be considered
+  # part of the same line (as a ratio of the max height).
+  height_tolerance: 0.3
+
+  # How far to look for a neighbor, as a multiple of the average text height.
+  # Increase this to connect fragments that are further apart.
+  proximity_factor: 3.0
+
+  # Minimum OCR confidence for a detection to be considered for grouping.
+  confidence_threshold: 0.3
+
+  # The minimum required vertical overlap between two boxes to be considered
+  # part of the same horizontal line (as a ratio of the min height).
+  min_vertical_overlap: 0.4
+
