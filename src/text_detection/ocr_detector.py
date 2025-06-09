@@ -18,16 +18,16 @@ class OCRDetection:
 
 
 class EasyOCRDetector:
-    def __init__(self, languages: List[str] = ['en'], gpu: bool = True):
+    def __init__(self, ocr_config: Dict[str, Any]):
         """
-        Initialize EasyOCR detector
+        Initialize EasyOCR detector from a configuration dictionary.
 
         Args:
-            languages: List of language codes (e.g., ['en', 'ch_sim', 'th'])
-            gpu: Whether to use GPU acceleration
+            ocr_config: Dictionary with OCR parameters.
         """
-        self.languages = languages
-        self.gpu = gpu
+        self.config = ocr_config
+        self.languages = self.config.get('languages', ['en'])
+        self.gpu = self.config.get('gpu', True)
         self.reader = None
         self._initialize_reader()
 
@@ -57,7 +57,10 @@ class EasyOCRDetector:
 
     def _transform_bbox_after_rotation(self, bbox: List[List[int]], angle: int,
                                        original_shape: Tuple[int, int]) -> List[List[int]]:
-        """Transform bounding box coordinates back to original image coordinates after rotation."""
+        """
+        Transform bounding box coordinates back to the original image's coordinate system
+        after the image has been rotated for OCR.
+        """
         if angle == 0:
             return bbox
 
@@ -65,20 +68,19 @@ class EasyOCRDetector:
         transformed_bbox = []
 
         for point in bbox:
-            x, y = point
+            x_rot, y_rot = point
             if angle == 90:
-                new_x, new_y = orig_h - y, x
+                new_x, new_y = y_rot, orig_h - x_rot
             elif angle == 180:
-                new_x, new_y = orig_w - x, orig_h - y
+                new_x, new_y = orig_w - x_rot, orig_h - y_rot
             elif angle == 270:
-                new_x, new_y = y, orig_w - x
+                new_x, new_y = orig_w - y_rot, x_rot
             else:
-                new_x, new_y = x, y
+                new_x, new_y = x_rot, y_rot
             transformed_bbox.append([int(new_x), int(new_y)])
         return transformed_bbox
 
-    def detect_text_with_rotation(self, image_path: str, confidence_threshold: float = 0.5,
-                                  rotation_angles: List[int] = [0, 90]) -> List[OCRDetection]:
+    def detect_text_with_rotation(self, image_path: str) -> List[OCRDetection]:
         """Detect text in a single image, trying multiple rotations."""
         if not os.path.exists(image_path):
             raise FileNotFoundError(f"Image not found: {image_path}")
@@ -87,9 +89,13 @@ class EasyOCRDetector:
         if image is None:
             raise ValueError(f"Could not read image: {image_path}")
 
-        original_shape = image.shape[:2]  # (height, width)
+        original_shape = image.shape[:2]
         all_detections = []
         height, width = original_shape
+
+        # Get parameters from config
+        confidence_threshold = self.config.get('confidence_threshold', 0.3)
+        rotation_angles = self.config.get('rotation_angles', [0, 90])
 
         for angle in rotation_angles:
             rotated_image = self._rotate_image(image, angle)
@@ -112,25 +118,19 @@ class EasyOCRDetector:
                 ))
         return all_detections
 
-    def filter_overlapping_detections(self, detections: List[OCRDetection],
-                                      iou_threshold: float = 0.5) -> List[OCRDetection]:
+    def filter_overlapping_detections(self, detections: List[OCRDetection]) -> List[OCRDetection]:
         """Filter out overlapping detections from different rotations on the same tile."""
         if not detections:
             return []
 
+        iou_threshold = self.config.get('iou_threshold', 0.5)
+
         sorted_detections = sorted(detections, key=lambda x: x.confidence, reverse=True)
 
-        # Using shapely is more precise for rotated polygons.
         try:
             from shapely.geometry import Polygon
         except ImportError:
-            print("Shapely not installed. Using a less accurate IoU calculation.")
-
-            # Fallback to a simple rectangular IoU if shapely is not available
-            def calculate_iou(box1, box2):
-                r1 = Polygon(box1).minimum_rotated_rectangle
-                r2 = Polygon(box2).minimum_rotated_rectangle
-                return r1.intersection(r2).area / r1.union(r2).area
+            raise ImportError("Shapely is required. Please install it (`pip install shapely`).")
 
         def calculate_iou_shapely(box1, box2):
             poly1 = Polygon(box1)

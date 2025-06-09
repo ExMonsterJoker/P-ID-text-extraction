@@ -40,7 +40,7 @@ def draw_label(img, text, bbox, font_scale=0.5, color=(255, 0, 0), thickness=1):
 def visualize_tile_results(image_name=None):
     """
     Loads raw OCR detections for each tile and overlays them on the tile images
-    to help diagnose issues at the source.
+    to help diagnose issues at the source, now including text orientation.
 
     Args:
         image_name (str, optional): The specific P&ID base name to process.
@@ -90,19 +90,27 @@ def visualize_tile_results(image_name=None):
                     for det in detections:
                         bbox = det.get('bbox')
                         if not bbox: continue
-                        draw_bounding_box(image, bbox)
 
+                        # Get orientation and set color accordingly
+                        orientation = det.get('rotation_angle', 0)
+                        # Green for horizontal (0d), Orange for vertical (90d)
+                        box_color = (0, 165, 255) if orientation == 90 else (0, 255, 0)
+                        draw_bounding_box(image, bbox, color=box_color)
+
+                        # Add orientation to the display label
                         label_parts = [det.get('text', '')]
                         if 'confidence' in det:
                             label_parts.append(f"conf: {det['confidence']:.2f}")
+                        label_parts.append(f"rot: {orientation}d")  # Add rotation degree
+
                         label = " | ".join(label_parts)
                         draw_label(image, label, bbox)
                 else:
-                    # FIX: If JSON does not exist, label the image accordingly
+                    # If JSON does not exist, label the image accordingly
                     logging.warning(f"Missing OCR JSON for tile: {tile_filename}")
                     cv2.putText(image, "No OCR Data", (10, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
 
-                # Save the visualized tile regardless of whether it had detections
+                # Save the visualized tile
                 output_tile_path = os.path.join(specific_output_dir, tile_filename)
                 cv2.imwrite(output_tile_path, image)
 
@@ -113,7 +121,8 @@ def visualize_tile_results(image_name=None):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="Debug visualizer for raw OCR results on individual tiles.")
+    parser = argparse.ArgumentParser(
+        description="Debug visualizer for raw OCR results on individual tiles with orientation.")
     parser.add_argument("-i", "--image-name", type=str,
                         help="Optional: The base name of a single P&ID image to process (e.g., DURI-OTPF0...).")
     args = parser.parse_args()

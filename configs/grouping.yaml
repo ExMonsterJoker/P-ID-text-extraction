@@ -3,7 +3,6 @@
 filtering:
   # The minimum ratio of a detection's area that must be in a tile's "core"
   # non-overlapping region to be kept.
-  # Lower this if text fragments at tile edges are being discarded.
   min_core_area_ratio: 0.01
 
   # The IoU threshold for the pre-grouping filter.
@@ -14,18 +13,29 @@ filtering:
 # --- Grouping Parameters ---
 # These control how individual text boxes are grouped into lines.
 grouping:
-  # Maximum allowed height difference between two boxes to be considered
-  # part of the same line (as a ratio of the max height).
-  height_tolerance: 0.3
-
-  # How far to look for a neighbor, as a multiple of the average text height.
-  # Increase this to connect fragments that are further apart.
-  proximity_factor: 3.0
-
   # Minimum OCR confidence for a detection to be considered for grouping.
   confidence_threshold: 0.3
 
-  # The minimum required vertical overlap between two boxes to be considered
-  # part of the same horizontal line (as a ratio of the min height).
-  min_vertical_overlap: 0.4
+  # --- Parameters for HORIZONTAL text grouping (0 degrees) ---
+  h_height_tolerance: 0.3
+  h_proximity_factor: 1
+  h_min_vertical_overlap: 0.1
 
+  # --- Parameters for VERTICAL text grouping (90 degrees) ---
+  v_width_tolerance: 0.3
+  v_proximity_factor: 1
+  v_min_horizontal_overlap: 0.1
+
+# --- Post-Grouping Filtering ---
+# Filters applied to the final, merged text lines.
+post_group_filtering:
+  aspect_ratio_filter:
+    # For horizontal text (0°), drop if (height / width) > this value.
+    # A true horizontal line should have a low h/w ratio.
+    # Example: 0.8 means width must be at least 1.25x height. Set to 0 to disable.
+    max_hw_ratio_horizontal: 1.5
+
+    # For vertical text (90°), drop if (width / height) > this value.
+    # A true vertical line should have a low w/h ratio.
+    # Example: 0.8 means height must be at least 1.25x width. Set to 0 to disable.
+    max_wh_ratio_vertical: 0.8
