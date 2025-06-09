@@ -19,6 +19,8 @@ from src.data_loader.metadata_manager import MetadataManager
 from src.text_detection.process_tiles_ocr import process_tiles_with_ocr
 from src.grouping.run_grouping_pipeline import main as run_grouping_main
 from src.grouping.visualize_final_groups import visualize_final_results
+from src.grouping.post_processing_filters import apply_aspect_ratio_filter
+import json
 
 # From root (if you have PDF conversion)
 try:
@@ -160,15 +162,59 @@ def run_ocr_step(config: dict):
 
 
 def run_grouping_step(config: dict):
-    """Runs the final text detection grouping and de-duplication step."""
-    logging.info("--- Starting Step 4: Text Grouping ---")
+    """Runs the text grouping and saves the unfiltered results."""
+    logging.info("--- Starting Step 4: Text Grouping (Unfiltered) ---")
+    # This script will now save to an intermediate "unfiltered" directory
+    # We will assume run_grouping_main is modified to save to a different folder
+    # or we can handle it here by moving files. For now, let's assume it saves
+    # to the final destination and we will filter from there.
     run_grouping_main()
     logging.info("--- Finished Text Grouping ---")
 
 
+def run_filtering_step(config: dict):
+    """Applies post-processing filters to the grouped text."""
+    logging.info("--- Starting Step 5: Post-Group Filtering ---")
+
+    grouped_dir = "data/processed/metadata/final_grouped_text"
+    filter_config = config.get('post_group_filtering', {}).get('aspect_ratio_filter', {})
+
+    max_hw_ratio_horizontal = filter_config.get('max_hw_ratio_horizontal', 0.8)
+    max_wh_ratio_vertical = filter_config.get('max_wh_ratio_vertical', 0.8)
+
+    grouped_files = glob.glob(os.path.join(grouped_dir, '*_grouped_text.json'))
+
+    if not grouped_files:
+        logging.warning(f"No grouped text files found in '{grouped_dir}' to filter.")
+        return
+
+    for file_path in grouped_files:
+        try:
+            with open(file_path, 'r') as f:
+                grouped_lines = json.load(f)
+
+            # Apply the filter
+            filtered_lines = apply_aspect_ratio_filter(
+                grouped_lines,
+                max_hw_ratio_horizontal,
+                max_wh_ratio_vertical
+            )
+
+            # Overwrite the file with the filtered results
+            with open(file_path, 'w') as f:
+                json.dump(filtered_lines, f, indent=2)
+
+            logging.info(f"Filtered '{Path(file_path).name}' and saved results.")
+
+        except Exception as e:
+            logging.error(f"Failed to filter file {file_path}: {e}", exc_info=True)
+
+    logging.info("--- Finished Post-Group Filtering ---")
+
+
 def run_visualization_step(config: dict):
     """Runs the final visualization step."""
-    logging.info("--- Starting Step 5: Final Visualization ---")
+    logging.info("--- Starting Step 6: Final Visualization ---")
     visualize_final_results(show_grid=True)
     logging.info("--- Finished Final Visualization ---")
 
@@ -181,10 +227,10 @@ def main():
     parser.add_argument("--config-dir", type=str, default="configs",
                         help="Directory containing YAML configuration files.")
     parser.add_argument("--start-at", type=str, default="pdf",
-                        choices=['pdf', 'slice', 'meta', 'ocr', 'group', 'viz'],
+                        choices=['pdf', 'slice', 'meta', 'ocr', 'group', 'filter', 'viz'],
                         help="The pipeline step to start from.")
     parser.add_argument("--stop-at", type=str, default="viz",
-                        choices=['pdf', 'slice', 'meta', 'ocr', 'group', 'viz'],
+                        choices=['pdf', 'slice', 'meta', 'ocr', 'group', 'filter', 'viz'],
                         help="The pipeline step to stop after.")
     parser.add_argument("--no-pdf", action="store_true",
                         help="Explicitly skip the PDF conversion step.")
@@ -208,10 +254,11 @@ def main():
         'meta': lambda: run_metadata_step(config),
         'ocr': lambda: run_ocr_step(config),
         'group': lambda: run_grouping_step(config),
+        'filter': lambda: run_filtering_step(config),
         'viz': lambda: run_visualization_step(config)
     }
 
-    step_order = ['pdf', 'slice', 'meta', 'ocr', 'group', 'viz']
+    step_order = ['pdf', 'slice', 'meta', 'ocr', 'group', 'filter', 'viz']
 
     try:
         start_index = step_order.index(args.start_at)
