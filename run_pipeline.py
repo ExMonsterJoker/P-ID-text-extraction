@@ -161,14 +161,11 @@ def run_ocr_step(config: dict):
     logging.info("--- Finished OCR Processing ---")
 
 
-def run_grouping_step(config: dict):
-    """Runs the text grouping and saves the unfiltered results."""
-    logging.info("--- Starting Step 4: Text Grouping (Unfiltered) ---")
-    # This script will now save to an intermediate "unfiltered" directory
-    # We will assume run_grouping_main is modified to save to a different folder
-    # or we can handle it here by moving files. For now, let's assume it saves
-    # to the final destination and we will filter from there.
-    run_grouping_main()
+def run_grouping_step(config: dict, grouping_args: argparse.Namespace):
+    """Runs the text grouping and passes the debug arguments."""
+    logging.info("--- Starting Step 4: Text Grouping ---")
+    # Pass the arguments to the grouping script's main function
+    run_grouping_main(grouping_args)
     logging.info("--- Finished Text Grouping ---")
 
 
@@ -234,6 +231,12 @@ def main():
                         help="The pipeline step to stop after.")
     parser.add_argument("--no-pdf", action="store_true",
                         help="Explicitly skip the PDF conversion step.")
+    # ADDED ARGUMENT FOR GROUPING DEBUG
+    parser.add_argument(
+        '--debug-grouping',
+        action='store_true',
+        help='Enable debug mode for the grouping step. This provides detailed logs and disables pre-grouping filters.'
+    )
 
     args = parser.parse_args()
 
@@ -247,13 +250,18 @@ def main():
 
     config = load_config(args.config_dir)
 
+    # Create a separate, clean namespace for the grouping script arguments
+    # to avoid passing unexpected arguments like --start-at.
+    grouping_args = argparse.Namespace(debug=args.debug_grouping)
+
     pipeline_steps = {
         'pdf': lambda: run_pdf_conversion_step(args.input_dir, config) if not args.no_pdf else logging.info(
             "Skipping PDF conversion as requested."),
         'slice': lambda: run_slicing_step(args.input_dir, config),
         'meta': lambda: run_metadata_step(config),
         'ocr': lambda: run_ocr_step(config),
-        'group': lambda: run_grouping_step(config),
+        # MODIFIED LAMBDA to pass arguments
+        'group': lambda: run_grouping_step(config, grouping_args),
         'filter': lambda: run_filtering_step(config),
         'viz': lambda: run_visualization_step(config)
     }

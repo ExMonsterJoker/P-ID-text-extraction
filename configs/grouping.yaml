@@ -27,3 +27,7 @@ post_group_filtering:
     # A true vertical line should have a low w/h ratio.
     # Example: 0.8 means height must be at least 1.25x width. Set to 0 to disable.
     max_wh_ratio_vertical: 0.8
+
+filtering:
+  min_core_area_ratio : 0.0
+  pre_group_iou_threshold : 0.0

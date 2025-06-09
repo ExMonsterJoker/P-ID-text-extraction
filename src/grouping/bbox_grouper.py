@@ -34,30 +34,73 @@ class BBoxGrouper:
         bbox = np.array(detection['bbox_original'])
         min_x, min_y = np.min(bbox, axis=0)
         max_x, max_y = np.max(bbox, axis=0)
-        return {
+        props = {
             'h': max_y - min_y, 'w': max_x - min_x,
             'cy': (min_y + max_y) / 2, 'cx': (min_x + max_x) / 2,
             'min_y': min_y, 'max_y': max_y, 'min_x': min_x, 'max_x': max_x
         }
+        # ADDED LOGGING:
+        logging.debug(
+            f"Props for '{detection.get('text', 'N/A')}': h={props.get('h', 0):.1f}, w={props.get('w', 0):.1f}, cx={props.get('cx', 0):.1f}, cy={props.get('cy', 0):.1f}")
+        return props
 
     def _are_boxes_compatible(self, det1: Dict, props1: Dict, det2: Dict, props2: Dict) -> bool:
-        """Determines if two bounding boxes can be grouped."""
-        if det1.get('rotation_angle') != det2.get('rotation_angle'): return False
+        """Determines if two bounding boxes can be grouped, with detailed logging."""
+        # ADDED LOGGING:
+        logging.debug(
+            f"\n--- Checking compatibility: ['{det1.get('text', 'N/A')}'] vs ['{det2.get('text', 'N/A')}'] ---")
+
+        if det1.get('rotation_angle') != det2.get('rotation_angle'):
+            logging.debug("-> FAIL: Different rotation angles.")
+            return False
+
         orientation = det1.get('rotation_angle', 0)
-        if orientation == 0:
-            if abs(props1['h'] - props2['h']) > self.h_height_tolerance * max(props1['h'], props2['h']): return False
+        if orientation == 0:  # Horizontal Grouping Logic
+            # Height similarity check
+            h_diff = abs(props1['h'] - props2['h'])
+            h_thresh = self.h_height_tolerance * max(props1['h'], props2['h'])
+            if h_diff > h_thresh:
+                logging.debug(f"-> H-FAIL: Height difference {h_diff:.1f} > tolerance {h_thresh:.1f}")
+                return False
+            logging.debug(f"-> H-PASS: Height difference OK.")
+
+            # Vertical overlap check
             vertical_overlap = max(0, min(props1['max_y'], props2['max_y']) - max(props1['min_y'], props2['min_y']))
-            if vertical_overlap < self.h_min_vertical_overlap * min(props1['h'], props2['h']): return False
-            max_allowed_dist = self.h_proximity_factor * ((props1['h'] + props2['h']) / 2)
+            v_overlap_thresh = self.h_min_vertical_overlap * min(props1['h'], props2['h'])
+            if vertical_overlap < v_overlap_thresh:
+                logging.debug(f"-> H-FAIL: Vertical overlap {vertical_overlap:.1f} < threshold {v_overlap_thresh:.1f}")
+                return False
+            logging.debug(f"-> H-PASS: Vertical overlap OK.")
+
+            # Proximity check
+            avg_h = (props1['h'] + props2['h']) / 2
+            max_allowed_dist = self.h_proximity_factor * avg_h
             horizontal_dist = abs(props1['cx'] - props2['cx']) - ((props1['w'] + props2['w']) / 2)
-            return horizontal_dist < max_allowed_dist
-        elif orientation == 90:
-            if abs(props1['w'] - props2['w']) > self.v_width_tolerance * max(props1['w'], props2['w']): return False
+            if horizontal_dist >= max_allowed_dist:
+                logging.debug(
+                    f"-> H-FAIL: Horizontal distance {horizontal_dist:.1f} >= max allowed {max_allowed_dist:.1f}")
+                return False
+            logging.debug(f"-> H-PASS: Horizontal distance OK.")
+
+            logging.debug("===> SUCCESS: Boxes are compatible.")
+            return True
+
+        elif orientation == 90:  # Vertical Grouping Logic
+            if abs(props1['w'] - props2['w']) > self.v_width_tolerance * max(props1['w'], props2['w']):
+                logging.debug("-> V-FAIL: Width difference too large.")
+                return False
             horizontal_overlap = max(0, min(props1['max_x'], props2['max_x']) - max(props1['min_x'], props2['min_x']))
-            if horizontal_overlap < self.v_min_horizontal_overlap * min(props1['w'], props2['w']): return False
+            if horizontal_overlap < self.v_min_horizontal_overlap * min(props1['w'], props2['w']):
+                logging.debug("-> V-FAIL: Horizontal overlap too small.")
+                return False
             max_allowed_dist = self.v_proximity_factor * ((props1['w'] + props2['w']) / 2)
             vertical_dist = abs(props1['cy'] - props2['cy']) - ((props1['h'] + props2['h']) / 2)
-            return vertical_dist < max_allowed_dist
+            if vertical_dist >= max_allowed_dist:
+                logging.debug("-> V-FAIL: Vertical distance too large.")
+                return False
+            logging.debug("===> SUCCESS: Vertical boxes are compatible.")
+            return True
+
         return False
 
     def _group_boxes(self, detections: List[Dict]) -> List[List[Dict]]:
@@ -104,20 +147,17 @@ class BBoxGrouper:
             "orientation": orientation, "component_detections": group
         }
 
-    def process(self, all_detections: List[Dict]) -> tuple[List[Dict], List[Dict]]:
-        """
-        The main entry point for processing a list of detections.
-        Returns both unfiltered and filtered results.
-        """
+    def process(self, all_detections: List[Dict]) -> List[Dict]:
+        """The main entry point for processing a list of detections."""
         valid_detections = [d for d in all_detections if d.get('confidence', 0) >= self.confidence_threshold]
         groups = self._group_boxes(valid_detections)
-        merged_lines_unfiltered = [self._merge_group(g) for g in groups if g]
+        merged_lines = [self._merge_group(g) for g in groups if g]
 
         # Apply the aspect ratio filter using the imported function
-        final_lines_filtered = apply_aspect_ratio_filter(
-            merged_lines_unfiltered,
+        final_lines = apply_aspect_ratio_filter(
+            merged_lines,
             self.max_hw_ratio_horizontal,
             self.max_wh_ratio_vertical
         )
 
-        return merged_lines_unfiltered, final_lines_filtered
+        return final_lines
