@@ -104,17 +104,20 @@ class BBoxGrouper:
             "orientation": orientation, "component_detections": group
         }
 
-    def process(self, all_detections: List[Dict]) -> List[Dict]:
-        """The main entry point for processing a list of detections."""
+    def process(self, all_detections: List[Dict]) -> tuple[List[Dict], List[Dict]]:
+        """
+        The main entry point for processing a list of detections.
+        Returns both unfiltered and filtered results.
+        """
         valid_detections = [d for d in all_detections if d.get('confidence', 0) >= self.confidence_threshold]
         groups = self._group_boxes(valid_detections)
-        merged_lines = [self._merge_group(g) for g in groups if g]
+        merged_lines_unfiltered = [self._merge_group(g) for g in groups if g]
 
         # Apply the aspect ratio filter using the imported function
-        final_lines = apply_aspect_ratio_filter(
-            merged_lines,
+        final_lines_filtered = apply_aspect_ratio_filter(
+            merged_lines_unfiltered,
             self.max_hw_ratio_horizontal,
             self.max_wh_ratio_vertical
         )
 
-        return final_lines
+        return merged_lines_unfiltered, final_lines_filtered

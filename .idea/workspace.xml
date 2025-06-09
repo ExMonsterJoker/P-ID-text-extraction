@@ -5,7 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="3cda8e01-a2d5-4f88-ab9f-b6d0a9d1f64d" name="Changes" comment="LGTM">
+      <change afterPath="$PROJECT_DIR$/debug_visualize_filters.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/configs/grouping.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/configs/grouping.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/grouping/bbox_grouper.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/grouping/bbox_grouper.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/grouping/run_grouping_pipeline.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/grouping/run_grouping_pipeline.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -60,6 +64,7 @@
     &quot;Python tests.Python tests in test_metadata_manager.py.executor&quot;: &quot;Run&quot;,
     &quot;Python tests.Python tests in test_sahi_slicer.py.executor&quot;: &quot;Run&quot;,
     &quot;Python.PDF_to_image.executor&quot;: &quot;Run&quot;,
+    &quot;Python.debug_visualize_filters.executor&quot;: &quot;Run&quot;,
     &quot;Python.debug_visualize_tiles.executor&quot;: &quot;Run&quot;,
     &quot;Python.folder_tree_maker.executor&quot;: &quot;Run&quot;,
     &quot;Python.metadata_manager.executor&quot;: &quot;Run&quot;,
@@ -134,7 +139,8 @@
       <workItem from="1749356027498" duration="8590000" />
       <workItem from="1749370290205" duration="3849000" />
       <workItem from="1749442557808" duration="3426000" />
-      <workItem from="1749454864169" duration="3506000" />
+      <workItem from="1749454864169" duration="5264000" />
+      <workItem from="1749462587953" duration="607000" />
     </task>
     <task id="LOCAL-00001" summary="LGTM">
       <option name="closed" value="true" />
@@ -168,7 +174,15 @@
       <option name="project" value="LOCAL" />
       <updated>1749456687115</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="LGTM">
+      <option name="closed" value="true" />
+      <created>1749460112497</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1749460112497</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -191,6 +205,7 @@
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/P_ID_text_extraction_pipeline$folder_tree_maker.coverage" NAME="folder_tree_maker Coverage Results" MODIFIED="1748936371139" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/P_ID_text_extraction_pipeline$debug_visualize_filters.coverage" NAME="debug_visualize_filters Coverage Results" MODIFIED="1749460562989" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/P_ID_text_extraction_pipeline$metadata_manager.coverage" NAME="metadata_manager Coverage Results" MODIFIED="1748757269877" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/data_loader" />
     <SUITE FILE_PATH="coverage/P_ID_text_extraction_pipeline$sahi_slicer.coverage" NAME="sahi_slicer Coverage Results" MODIFIED="1748659715497" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/data_loader" />
     <SUITE FILE_PATH="coverage/P_ID_text_extraction_pipeline$process_tiles_ocr.coverage" NAME="process_tiles_ocr Coverage Results" MODIFIED="1748759030433" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/text_detection" />
