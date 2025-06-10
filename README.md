@@ -1,11 +1,1 @@
-Sliced images
-python -m src.data_loader.sahi_slicer
-
-metadata maker
-python -m src.data_loader.metadata_manager
-
-OCR tiles
-python -m src.text_detection.process_tiles_ocr
-
-Filter, de-duplicate, and group text detections
-python -m src.grouping.run_grouping_pipeline
+check run_pipeline.py
