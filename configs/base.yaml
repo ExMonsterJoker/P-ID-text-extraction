@@ -8,13 +8,14 @@ pipeline:
   debug: True
   debug_visualization: True
 
-# --- NEW: SAHI Slicer Configuration ---
+# --- SAHI Slicer Configuration ---
 sahi_slicer:
   tile_size: 1050
   overlap_ratio: 0.5
   min_area_ratio: 0.1
   verbose: False
 
+# --- Data Loader Paths ---
 data_loader:
   sahi_slicer_output_dir: "data/processed/tiles"
   metadata_output_dir: "data/processed/metadata"
@@ -32,4 +33,8 @@ ocr:
   confidence_threshold: 0.3
   rotation_angles: [0, 90]
   filter_overlaps: True
-  # iou_threshold: 0.5 # IoU threshold for filtering overlapping boxes from different rotations
+
+# --- NEW: Visualization Configuration ---
+visualization:
+  # The directory where the final visualization images will be saved.
+  output_dir: "data/outputs/visualizations_final"

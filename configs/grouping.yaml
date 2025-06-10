@@ -1,8 +1,10 @@
+# configs/grouping.yaml
+
 # --- Grouping Parameters ---
 # These control how individual text boxes are grouped into lines.
 grouping:
   # Minimum OCR confidence for a detection to be considered for grouping.
-  confidence_threshold: 0.1
+  confidence_threshold: 0.5
 
   # --- Parameters for HORIZONTAL text grouping (0 degrees) ---
   h_height_tolerance: 0.3
@@ -28,3 +30,13 @@ post_group_filtering:
     # Example: 0.8 means height must be at least 1.25x width. Set to 0 to disable.
     max_wh_ratio_vertical: 0.5
 
+  # NEW: Soft-NMS Filter configuration
+  soft_nms:
+    # Set to true to enable this filter.
+    enabled: true
+    # IoU threshold to start applying suppression.
+    iou_threshold: 0.5
+    # Sigma for the Gaussian decay function. Higher sigma = less suppression.
+    sigma: 0.5
+    # Minimum confidence score to keep a box after suppression.
+    min_confidence: 0.2

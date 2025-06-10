@@ -5,14 +5,17 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="3cda8e01-a2d5-4f88-ab9f-b6d0a9d1f64d" name="Changes" comment="LGTM">
-      <change afterPath="$PROJECT_DIR$/configs/cropping.yaml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/cropping/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/cropping/cropping_Images.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/configs/re_ocr.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/visualization/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/visualization/visualizer.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/configs/base.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/configs/base.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/configs/cropping.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/configs/cropping.yaml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/configs/grouping.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/configs/grouping.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/postprocessing.yaml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/run_pipeline.py" beforeDir="false" afterPath="$PROJECT_DIR$/run_pipeline.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/cropping/cropping_Images.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/cropping/cropping_Images.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/grouping/bbox_grouper.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/grouping/bbox_grouper.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/grouping/run_grouping_pipeline.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/grouping/run_grouping_pipeline.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/grouping/post_processing_filters.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/grouping/post_processing_filters.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -99,8 +102,8 @@
       <recent name="D:\OneDrive\Radiant Utama\Personal Project\PID Analyzer\Docker PID\P&amp;ID text extraction pipeline\src" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
-      <recent name="D:\Stuff\P&amp;ID text extraction pipeline" />
       <recent name="D:\Stuff\P&amp;ID text extraction pipeline\src" />
+      <recent name="D:\Stuff\P&amp;ID text extraction pipeline" />
       <recent name="D:\Stuff\P&amp;ID text extraction pipeline\data\raw" />
       <recent name="D:\Stuff\P&amp;ID text extraction pipeline\data\test" />
     </key>
@@ -146,7 +149,7 @@
       <workItem from="1749462587953" duration="6455000" />
       <workItem from="1749479419594" duration="733000" />
       <workItem from="1749522917853" duration="3222000" />
-      <workItem from="1749550127984" duration="305000" />
+      <workItem from="1749550127984" duration="6831000" />
     </task>
     <task id="LOCAL-00001" summary="LGTM">
       <option name="closed" value="true" />
@@ -196,7 +199,15 @@
       <option name="project" value="LOCAL" />
       <updated>1749463205596</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="LGTM">
+      <option name="closed" value="true" />
+      <created>1749550438955</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1749550438955</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">

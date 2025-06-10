@@ -4,6 +4,73 @@ import logging
 from typing import List, Dict
 
 
+def calculate_iou(box1: List[List[int]], box2: List[List[int]]) -> float:
+    """
+    Calculates Intersection over Union (IoU) for two rectangular bounding boxes.
+    Assumes box format: [[min_x, min_y], [max_x, min_y], [max_x, max_y], [min_x, max_y]]
+    """
+    x1_min, y1_min = box1[0]
+    x1_max, y1_max = box1[2]
+
+    x2_min, y2_min = box2[0]
+    x2_max, y2_max = box2[2]
+
+    # Calculate intersection area
+    inter_x_min = max(x1_min, x2_min)
+    inter_y_min = max(y1_min, y2_min)
+    inter_x_max = min(x1_max, x2_max)
+    inter_y_max = min(y1_max, y2_max)
+    inter_area = max(0, inter_x_max - inter_x_min) * max(0, inter_y_max - inter_y_min)
+
+    # Calculate union area
+    box1_area = (x1_max - x1_min) * (y1_max - y1_min)
+    box2_area = (x2_max - x2_min) * (y2_max - y2_min)
+    union_area = box1_area + box2_area - inter_area
+
+    if union_area == 0:
+        return 0.0
+
+    return inter_area / union_area
+
+
+def apply_soft_nms_filter(
+    lines: List[Dict],
+    iou_threshold: float,
+    sigma: float,
+    min_confidence: float
+) -> List[Dict]:
+    """
+    Applies Soft-NMS to a list of detected lines. Instead of removing overlapping
+    boxes, it decays their confidence scores using a Gaussian penalty.
+    """
+    if not lines:
+        return []
+
+    logging.info(f"Applying Soft-NMS with IoU threshold={iou_threshold}, sigma={sigma}, min_confidence={min_confidence}")
+
+    # Work on a copy of the lines list
+    all_lines = [line.copy() for line in lines]
+
+    # Sort detections by confidence score in descending order
+    all_lines.sort(key=lambda x: x['confidence'], reverse=True)
+
+    for i in range(len(all_lines)):
+        # Iterate through the rest of the boxes to apply suppression
+        for j in range(i + 1, len(all_lines)):
+            iou = calculate_iou(all_lines[i]['bbox'], all_lines[j]['bbox'])
+
+            # If overlap is above the threshold, apply the Gaussian penalty
+            if iou > iou_threshold:
+                weight = np.exp(-(iou * iou) / sigma)
+                all_lines[j]['confidence'] *= weight
+
+    # Filter out lines that have fallen below the minimum confidence threshold
+    final_lines = [line for line in all_lines if line['confidence'] >= min_confidence]
+
+    logging.info(f"Soft-NMS reduced lines from {len(lines)} to {len(final_lines)}.")
+    return final_lines
+
+
 def apply_aspect_ratio_filter(
         merged_lines: List[Dict],
         max_hw_ratio_horizontal: float,
@@ -12,16 +79,7 @@ def apply_aspect_ratio_filter(
     """
     Filters merged text lines based on their aspect ratio, which can remove
     many common false positives.
-
-    Args:
-        merged_lines: A list of merged text line dictionaries.
-        max_hw_ratio_horizontal: For horizontal text (0°), the maximum allowed
-                                 height-to-width ratio.
-        max_wh_ratio_vertical: For vertical text (90°), the maximum allowed
-                               width-to-height ratio.
-
-    Returns:
-        A list of text lines that pass the filter.
+    (This function remains unchanged)
     """
     if not merged_lines:
         return []
