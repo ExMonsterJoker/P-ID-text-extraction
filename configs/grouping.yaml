@@ -2,16 +2,16 @@
 # These control how individual text boxes are grouped into lines.
 grouping:
   # Minimum OCR confidence for a detection to be considered for grouping.
-  confidence_threshold: 0.0
+  confidence_threshold: 0.1
 
   # --- Parameters for HORIZONTAL text grouping (0 degrees) ---
   h_height_tolerance: 0.3
-  h_proximity_factor: 2
+  h_proximity_factor: 0.75
   h_min_vertical_overlap: 0.1
 
   # --- Parameters for VERTICAL text grouping (90 degrees) ---
   v_width_tolerance: 0.3
-  v_proximity_factor: 1
+  v_proximity_factor: 0.75
   v_min_horizontal_overlap: 0.1
 
 # --- Post-Grouping Filtering ---
@@ -21,13 +21,10 @@ post_group_filtering:
     # For horizontal text (0°), drop if (height / width) > this value.
     # A true horizontal line should have a low h/w ratio.
     # Example: 0.8 means width must be at least 1.25x height. Set to 0 to disable.
-    max_hw_ratio_horizontal: 1.5
+    max_hw_ratio_horizontal: 0.5
 
     # For vertical text (90°), drop if (width / height) > this value.
     # A true vertical line should have a low w/h ratio.
     # Example: 0.8 means height must be at least 1.25x width. Set to 0 to disable.
-    max_wh_ratio_vertical: 0.8
+    max_wh_ratio_vertical: 0.5
 
-filtering:
-  min_core_area_ratio : 0.0
-  pre_group_iou_threshold : 0.0

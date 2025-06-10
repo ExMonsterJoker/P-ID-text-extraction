@@ -23,7 +23,7 @@ class BBoxGrouper:
         self.v_width_tolerance = grouping_config.get('v_width_tolerance', 0.3)
         self.v_proximity_factor = grouping_config.get('v_proximity_factor', 1.5)
         self.v_min_horizontal_overlap = grouping_config.get('v_min_horizontal_overlap', 0.4)
-        self.confidence_threshold = grouping_config.get('confidence_threshold', 0.3)
+        # REMOVED: confidence_threshold - no longer filtering by confidence
 
         # Post-grouping filter parameters
         self.max_hw_ratio_horizontal = post_group_config.get('max_hw_ratio_horizontal', 0.8)
@@ -39,14 +39,12 @@ class BBoxGrouper:
             'cy': (min_y + max_y) / 2, 'cx': (min_x + max_x) / 2,
             'min_y': min_y, 'max_y': max_y, 'min_x': min_x, 'max_x': max_x
         }
-        # ADDED LOGGING:
         logging.debug(
             f"Props for '{detection.get('text', 'N/A')}': h={props.get('h', 0):.1f}, w={props.get('w', 0):.1f}, cx={props.get('cx', 0):.1f}, cy={props.get('cy', 0):.1f}")
         return props
 
     def _are_boxes_compatible(self, det1: Dict, props1: Dict, det2: Dict, props2: Dict) -> bool:
         """Determines if two bounding boxes can be grouped, with detailed logging."""
-        # ADDED LOGGING:
         logging.debug(
             f"\n--- Checking compatibility: ['{det1.get('text', 'N/A')}'] vs ['{det2.get('text', 'N/A')}'] ---")
 
@@ -149,11 +147,13 @@ class BBoxGrouper:
 
     def process(self, all_detections: List[Dict]) -> List[Dict]:
         """The main entry point for processing a list of detections."""
-        valid_detections = [d for d in all_detections if d.get('confidence', 0) >= self.confidence_threshold]
-        groups = self._group_boxes(valid_detections)
+        # REMOVED: confidence threshold filtering - process all detections
+        logging.info(f"Processing {len(all_detections)} detections without pre-filtering")
+
+        groups = self._group_boxes(all_detections)
         merged_lines = [self._merge_group(g) for g in groups if g]
 
-        # Apply the aspect ratio filter using the imported function
+        # Apply ONLY the aspect ratio filter after grouping
         final_lines = apply_aspect_ratio_filter(
             merged_lines,
             self.max_hw_ratio_horizontal,

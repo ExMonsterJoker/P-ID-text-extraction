@@ -3,7 +3,6 @@ import json
 import logging
 import argparse
 from glob import glob
-from shapely.geometry import Polygon
 import yaml
 
 # Import the grouper class and the filtering functions
@@ -15,50 +14,6 @@ CORE_META_DIR = "data/processed/metadata/core_tile_metadata"
 DET_META_DIR = "data/processed/metadata/detection_metadata"
 GROUPING_CONFIG_PATH = "configs/grouping.yaml"
 OUTPUT_DIR = "data/processed/metadata/final_grouped_text"
-
-
-def pre_group_filter(detections, iou_threshold=0.5):
-    """
-    Filters overlapping detections before grouping (Non-Maximum Suppression).
-    This version prioritizes longer text strings to avoid being suppressed by
-    high-confidence partial detections.
-    """
-    if not detections:
-        return []
-
-    # NEW: Sort by text length (descending), then confidence (descending).
-    # This ensures longer detections are considered first.
-    detections.sort(key=lambda x: (len(x.get('text', '')), x.get('confidence', 0)), reverse=True)
-
-    final_detections = []
-    for current_det in detections:
-        is_duplicate = False
-        # Ensure bbox_original and its area are valid
-        if not current_det.get('bbox_original'): continue
-        current_poly = Polygon(current_det['bbox_original'])
-        if current_poly.area == 0: continue
-
-        for final_det in final_detections:
-            final_poly = Polygon(final_det['bbox_original'])
-
-            # Use intersection over the area of the SMALLER box.
-            # This is a better metric for one box containing another.
-            intersection = current_poly.intersection(final_poly).area
-            min_area = min(current_poly.area, final_poly.area)
-
-            if min_area == 0: continue
-
-            # If the overlap ratio is high, it's a duplicate.
-            overlap_metric = intersection / min_area
-            if overlap_metric > iou_threshold:
-                is_duplicate = True
-                break
-
-        if not is_duplicate:
-            final_detections.append(current_det)
-
-    logging.info(f"Pre-grouping NMS filter reduced detections from {len(detections)} to {len(final_detections)}")
-    return final_detections
 
 
 def setup_logging(debug_mode=False):
@@ -89,7 +44,7 @@ def setup_logging(debug_mode=False):
 
 def main(args):
     """
-    Main function to run the full filtering and grouping pipeline.
+    Main function to run the grouping pipeline with only post-grouping aspect ratio filtering.
     """
     setup_logging(args.debug)
 
@@ -99,12 +54,8 @@ def main(args):
         logging.error(f"Grouping config file not found at: {GROUPING_CONFIG_PATH}")
         return
 
-    # Load filter configurations
-    with open(GROUPING_CONFIG_PATH, 'r') as f:
-        filter_config = yaml.safe_load(f).get('filtering', {})
-
-    min_core_ratio = filter_config.get('min_core_area_ratio', 0.1)
-    iou_thresh = filter_config.get('pre_group_iou_threshold', 0.4)
+    # REMOVED: All pre-grouping filter configurations
+    # No more min_core_ratio or iou_thresh loading
 
     grouper = BBoxGrouper(config_path=GROUPING_CONFIG_PATH)
     logging.info("BBoxGrouper initialized.")
@@ -119,37 +70,31 @@ def main(args):
     for base_name, tiles in core_map.items():
         logging.info(f"\n{'=' * 50}\nProcessing image: {base_name}\n{'=' * 50}")
 
-        # --- Core Area Filtering ---
-        # If in debug mode, set ratio to 0 to disable filtering.
-        current_min_core_ratio = 0.0 if args.debug else min_core_ratio
-        if args.debug:
-            logging.info("DEBUG MODE: Core area filter is disabled (min_area_ratio=0.0).")
-
+        # --- Load ALL detections without any filtering ---
         all_detections_from_tiles = []
         for tile_id, core_coords in tiles.items():
+            # REMOVED: Core area filtering - load all detections with min_area_ratio=0.0
             kept_detections = filter_tile_detections(
                 base_name, tile_id, core_coords, DET_META_DIR,
-                min_area_ratio=current_min_core_ratio
+                min_area_ratio=0.0  # Accept all detections regardless of core overlap
             )
             all_detections_from_tiles.extend(kept_detections)
 
-        logging.info(f"Found {len(all_detections_from_tiles)} text detections after core area filter.")
+        logging.info(f"Loaded {len(all_detections_from_tiles)} text detections (no pre-filtering applied).")
 
-        # --- Pre-Grouping NMS Filter ---
-        if args.debug:
-            logging.info("DEBUG MODE: Pre-grouping NMS filter has been REMOVED.")
-            final_clean_detections = all_detections_from_tiles
-        else:
-            logging.info(f"Applying pre-grouping NMS filter with IoU threshold: {iou_thresh}")
-            final_clean_detections = pre_group_filter(all_detections_from_tiles, iou_threshold=iou_thresh)
+        # REMOVED: All pre-grouping filtering steps
+        # - No confidence threshold filtering
+        # - No core area filtering
+        # - No pre-grouping NMS filtering
 
-        if not final_clean_detections:
-            logging.warning(f"No raw detections left to process for {base_name}. Skipping.")
+        if not all_detections_from_tiles:
+            logging.warning(f"No detections found for {base_name}. Skipping.")
             continue
 
         logging.info("Starting grouping process...")
-        final_grouped_lines = grouper.process(final_clean_detections)
+        final_grouped_lines = grouper.process(all_detections_from_tiles)
         logging.info(f"Grouped detections into {len(final_grouped_lines)} final text lines.")
+        logging.info("Only post-grouping aspect ratio filtering was applied.")
 
         output_path = os.path.join(OUTPUT_DIR, f"{base_name}_grouped_text.json")
         try:
@@ -165,11 +110,11 @@ def main(args):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="Run the text grouping pipeline with an optional debug mode.")
+    parser = argparse.ArgumentParser(description="Run the text grouping pipeline with only post-grouping aspect ratio filtering.")
     parser.add_argument(
         '--debug',
         action='store_true',
-        help='Enable debug mode. This provides detailed logs and disables pre-grouping filters.'
+        help='Enable debug mode for detailed logging.'
     )
     args = parser.parse_args()
     main(args)
