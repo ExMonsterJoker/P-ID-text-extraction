@@ -10,7 +10,7 @@ pipeline:
 
 # --- SAHI Slicer Configuration ---
 sahi_slicer:
-  tile_size: 1050
+  tile_size: 2108
   overlap_ratio: 0.5
   min_area_ratio: 0.1
   verbose: False

@@ -45,23 +45,17 @@ def filter_tile_detections(base, tile_id, core_coords, det_meta_dir, min_area_ra
     """
     Load OCR detections for a tile and filter them based on their overlap with the core region.
     """
-    # FIX: The filename construction now uses only the tile_id, as it is
-    # already globally unique and matches the new format from metadata_manager.py.
-    # The 'base' parameter is no longer needed to construct the filename.
-    #
-    # Old line: fname = f"{base}_{tile_id}_ocr.json"
-    #
     fname = f"{tile_id}_ocr.json"
-    path = os.path.join(det_meta_dir, fname)
+    path = os.path.join(det_meta_dir, base, fname) #MODIFIED
 
     if not os.path.exists(path):
-        logging.warning(f"Missing detection file: {fname}")
+        logging.warning(f"Missing detection file: {path}")
         return []
     try:
         with open(path, 'r') as f:
             detections = json.load(f)
     except Exception as e:
-        logging.error(f"Error reading {fname}: {e}")
+        logging.error(f"Error reading {path}: {e}")
         return []
 
     kept = []

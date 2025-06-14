@@ -74,6 +74,10 @@ class MetadataManager:
         """
         Compute core (non-overlapping) regions for each tile
         """
+        if not tile_metadata_list:
+            return []
+
+        # Build tile grid for neighbor lookup
         tile_grid = {}
         for tile in tile_metadata_list:
             row, col = tile.grid_position
@@ -83,26 +87,57 @@ class MetadataManager:
         for tile in tile_metadata_list:
             row, col = tile.grid_position
             x0, y0, x1, y1 = tile.coordinates
+
+            # Start with original coordinates
             core_x0, core_y0, core_x1, core_y1 = x0, y0, x1, y1
 
+            # Check right neighbor
             right_neighbor = tile_grid.get((row, col + 1))
-            overlap_width = x1 - right_neighbor.coordinates[0] if right_neighbor else 0
-            if right_neighbor: core_x1 = right_neighbor.coordinates[0]
+            has_right_neighbor = right_neighbor is not None
+            overlap_width = 0
 
+            if right_neighbor:
+                right_x0 = right_neighbor.coordinates[0]
+                # Calculate overlap (should be positive if tiles overlap)
+                overlap_width = max(0, x1 - right_x0)
+                if overlap_width > 0:
+                    # Adjust core boundary to avoid overlap
+                    core_x1 = right_x0
+                # If overlap_width is 0, tiles are adjacent but don't overlap
+
+            # Check bottom neighbor
             bottom_neighbor = tile_grid.get((row + 1, col))
-            overlap_height = y1 - bottom_neighbor.coordinates[1] if bottom_neighbor else 0
-            if bottom_neighbor: core_y1 = bottom_neighbor.coordinates[1]
+            has_bottom_neighbor = bottom_neighbor is not None
+            overlap_height = 0
+
+            if bottom_neighbor:
+                bottom_y0 = bottom_neighbor.coordinates[1]
+                # Calculate overlap (should be positive if tiles overlap)
+                overlap_height = max(0, y1 - bottom_y0)
+                if overlap_height > 0:
+                    # Adjust core boundary to avoid overlap
+                    core_y1 = bottom_y0
+                # If overlap_height is 0, tiles are adjacent but don't overlap
+
+            # Validate core region
+            if core_x1 <= core_x0 or core_y1 <= core_y0:
+                print(f"Warning: Invalid core region for tile {tile.tile_id}: "
+                      f"core=({core_x0},{core_y0},{core_x1},{core_y1}), "
+                      f"original=({x0},{y0},{x1},{y1})")
+                # Fallback: use original coordinates
+                core_x1, core_y1 = x1, y1
 
             core_tiles.append(CoreTileMetadata(
                 tile_id=tile.tile_id,
-                original_coordinates=tile.coordinates,
+                original_coordinates=(x0, y0, x1, y1),
                 core_coordinates=(core_x0, core_y0, core_x1, core_y1),
-                grid_position=tile.grid_position,
-                has_right_neighbor=right_neighbor is not None,
-                has_bottom_neighbor=bottom_neighbor is not None,
+                grid_position=(row, col),
+                has_right_neighbor=has_right_neighbor,
+                has_bottom_neighbor=has_bottom_neighbor,
                 overlap_width=overlap_width,
                 overlap_height=overlap_height
             ))
+
         return core_tiles
 
     def save_core_tile_metadata(self, core_tiles: List[CoreTileMetadata], source_image: str):
@@ -114,15 +149,14 @@ class MetadataManager:
 
     def save_ocr_metadata(self, ocr_detections: List['OCRDetection'], tile_path: str, tile_metadata: 'TileMetadata'):
         """
-        Save OCR detection metadata for a tile.
+        Save OCR detection metadata for a tile in an image-specific subfolder.
         """
-        # FIX: The tile_id is already globally unique (e.g., 'DURI..._T0000').
-        # We should not prepend the base_name again.
-        #
-        # Old line: f"{base_name}_{tile_metadata.tile_id}_ocr.json"
-        #
+        base_name = Path(tile_metadata.source_image).stem
+        image_specific_dir = os.path.join(self.detection_metadata_dir, base_name)
+        os.makedirs(image_specific_dir, exist_ok=True)
+
         output_path = os.path.join(
-            self.detection_metadata_dir,
+            image_specific_dir,
             f"{tile_metadata.tile_id}_ocr.json"
         )
 
@@ -144,15 +178,18 @@ class MetadataManager:
         with open(output_path, 'w') as f:
             json.dump(ocr_data, f, indent=2)
 
-
     def load_ocr_metadata(self, source_image: str) -> Dict[str, List[Dict]]:
         base_name = os.path.splitext(os.path.basename(source_image))[0]
+        image_specific_dir = os.path.join(self.detection_metadata_dir, base_name)
         ocr_detections = {}
-        for file_name in os.listdir(self.detection_metadata_dir):
-            if file_name.startswith(base_name) and file_name.endswith("_ocr.json"):
-                # This logic should now correctly match the new filenames
+
+        if not os.path.isdir(image_specific_dir):
+            return ocr_detections
+
+        for file_name in os.listdir(image_specific_dir):
+            if file_name.endswith("_ocr.json"):
                 tile_id = file_name.replace("_ocr.json", "")
-                with open(os.path.join(self.detection_metadata_dir, file_name), 'r') as f:
+                with open(os.path.join(image_specific_dir, file_name), 'r') as f:
                     ocr_detections[tile_id] = json.load(f)
         return ocr_detections
 
@@ -182,4 +219,3 @@ class MetadataManager:
         base_name = os.path.splitext(os.path.basename(metadata.source_image))[0]
         output_path = os.path.join(self.global_metadata_dir, f"{base_name}_global.json")
         with open(output_path, 'w') as f: json.dump(asdict(metadata), f, indent=2)
-
