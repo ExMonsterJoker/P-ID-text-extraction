@@ -144,7 +144,6 @@ class MetadataManager:
         with open(output_path, 'w') as f:
             json.dump(ocr_data, f, indent=2)
 
-    # --- Other methods remain unchanged ---
 
     def load_ocr_metadata(self, source_image: str) -> Dict[str, List[Dict]]:
         base_name = os.path.splitext(os.path.basename(source_image))[0]

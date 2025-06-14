@@ -4,7 +4,7 @@
 # These control how individual text boxes are grouped into lines.
 grouping:
   # Minimum OCR confidence for a detection to be considered for grouping.
-  confidence_threshold: 0.5
+  confidence_threshold: 0.4
 
   # --- Parameters for HORIZONTAL text grouping (0 degrees) ---
   h_height_tolerance: 0.3
@@ -23,12 +23,12 @@ post_group_filtering:
     # For horizontal text (0°), drop if (height / width) > this value.
     # A true horizontal line should have a low h/w ratio.
     # Example: 0.8 means width must be at least 1.25x height. Set to 0 to disable.
-    max_hw_ratio_horizontal: 0.5
+    max_hw_ratio_horizontal: 0.3
 
     # For vertical text (90°), drop if (width / height) > this value.
     # A true vertical line should have a low w/h ratio.
     # Example: 0.8 means height must be at least 1.25x width. Set to 0 to disable.
-    max_wh_ratio_vertical: 0.5
+    max_wh_ratio_vertical: 0.3
 
   # NEW: Soft-NMS Filter configuration
   soft_nms:

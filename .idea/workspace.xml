@@ -5,17 +5,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="3cda8e01-a2d5-4f88-ab9f-b6d0a9d1f64d" name="Changes" comment="LGTM">
-      <change afterPath="$PROJECT_DIR$/configs/re_ocr.yaml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/visualization/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/visualization/visualizer.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/universal_converter.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/configs/base.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/configs/base.yaml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/configs/cropping.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/configs/cropping.yaml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/configs/grouping.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/configs/grouping.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/folder_tree_maker.py" beforeDir="false" afterPath="$PROJECT_DIR$/folder_tree_maker.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/run_pipeline.py" beforeDir="false" afterPath="$PROJECT_DIR$/run_pipeline.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/cropping/cropping_Images.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/cropping/cropping_Images.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/grouping/bbox_grouper.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/grouping/bbox_grouper.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/grouping/post_processing_filters.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/grouping/post_processing_filters.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/data_loader/metadata_manager.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/data_loader/metadata_manager.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -70,6 +67,7 @@
     &quot;Python tests.Python tests in test_metadata_manager.py.executor&quot;: &quot;Run&quot;,
     &quot;Python tests.Python tests in test_sahi_slicer.py.executor&quot;: &quot;Run&quot;,
     &quot;Python.PDF_to_image.executor&quot;: &quot;Run&quot;,
+    &quot;Python.convert_to_ppocr_format_annotations.executor&quot;: &quot;Run&quot;,
     &quot;Python.debug_visualize_filters.executor&quot;: &quot;Run&quot;,
     &quot;Python.debug_visualize_tiles.executor&quot;: &quot;Run&quot;,
     &quot;Python.folder_tree_maker.executor&quot;: &quot;Run&quot;,
@@ -102,6 +100,7 @@
       <recent name="D:\OneDrive\Radiant Utama\Personal Project\PID Analyzer\Docker PID\P&amp;ID text extraction pipeline\src" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\Stuff\P&amp;ID text extraction pipeline\data\outputs" />
       <recent name="D:\Stuff\P&amp;ID text extraction pipeline\src" />
       <recent name="D:\Stuff\P&amp;ID text extraction pipeline" />
       <recent name="D:\Stuff\P&amp;ID text extraction pipeline\data\raw" />
@@ -111,7 +110,6 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-js-predefined-d6986cc7102b-6a121458b545-JavaScript-PY-251.25410.159" />
         <option value="bundled-python-sdk-e0ed3721d81e-36ea0e71a18c-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-251.25410.159" />
       </set>
     </attachedChunks>
@@ -149,7 +147,8 @@
       <workItem from="1749462587953" duration="6455000" />
       <workItem from="1749479419594" duration="733000" />
       <workItem from="1749522917853" duration="3222000" />
-      <workItem from="1749550127984" duration="6831000" />
+      <workItem from="1749550127984" duration="8022000" />
+      <workItem from="1749601380568" duration="1032000" />
     </task>
     <task id="LOCAL-00001" summary="LGTM">
       <option name="closed" value="true" />
@@ -207,7 +206,15 @@
       <option name="project" value="LOCAL" />
       <updated>1749550438955</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="LGTM">
+      <option name="closed" value="true" />
+      <created>1749560002473</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1749560002474</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">

@@ -31,7 +31,20 @@ def tree_to_text(tree, indent=0):
 
 # Set source path and folders to exclude
 source_path = os.getcwd()
-excluded = {'.venv', '.git', '.idea', '.pytest_cache', '.qodo', 'tests', '__pycache__'}
+excluded = {'.venv',
+            '.git',
+            '.idea',
+            '.pytest_cache',
+            '.qodo',
+            'tests',
+            '__pycache__',
+            'tiles',
+            'cropping',
+            'test',
+            'pdf',
+            'debug_tile_visualizations',
+            'detection_metadata'
+            }
 
 folder_tree = scan_folder_tree(source_path, exclude_folders=excluded)
 

@@ -30,7 +30,7 @@ data_loader:
 ocr:
   languages: ['en']
   gpu: True
-  confidence_threshold: 0.3
+  confidence_threshold: 0.4
   rotation_angles: [0, 90]
   filter_overlaps: True
 

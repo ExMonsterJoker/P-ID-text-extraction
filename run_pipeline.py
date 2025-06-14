@@ -111,9 +111,9 @@ def run_slicing_step(input_dir: str, config: dict):
     output_dir = config.get('data_loader', {}).get('sahi_slicer_output_dir', 'data/processed/tiles')
     os.makedirs(output_dir, exist_ok=True)
 
-    image_files = glob.glob(os.path.join(input_dir, "*.png")) + \
-                  glob.glob(os.path.join(input_dir, "*.jpg")) + \
-                  glob.glob(os.path.join(input_dir, "*.tiff"))
+    image_files = glob(os.path.join(input_dir, "*.png")) + \
+                  glob(os.path.join(input_dir, "*.jpg")) + \
+                  glob(os.path.join(input_dir, "*.tiff"))
 
     if not image_files:
         logging.warning(f"No image files found in '{input_dir}'.")
@@ -155,7 +155,7 @@ def run_metadata_step(config: dict):
     tiles_base_dir = data_loader_config.get('sahi_slicer_output_dir', "data/processed/tiles")
     manager = MetadataManager(metadata_base_dir)
 
-    image_dirs = [d for d in glob.glob(os.path.join(tiles_base_dir, "*")) if os.path.isdir(d)]
+    image_dirs = [d for d in glob(os.path.join(tiles_base_dir, "*")) if os.path.isdir(d)]
     if not image_dirs:
         logging.warning("No sliced image directories found to generate metadata from.")
         return
