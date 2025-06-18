@@ -1,9 +1,11 @@
+# src/text_detection/process_tiles_ocr.py
 import os
 import sys
 import glob
 import yaml
 import logging
 from typing import List, Dict, Any
+import json # Import json for loading tile metadata
 
 # Add the project root to the Python path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
@@ -25,29 +27,18 @@ def process_tiles_with_ocr(config: Dict[str, Any]):
     """
     project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 
-    # Get paths and parameters from the main config dictionary
+    # ... (config loading remains the same) ...
     data_loader_config = config.get('data_loader', {})
     ocr_config = config.get('ocr', {})
-
     tiles_base_dir = data_loader_config.get('sahi_slicer_output_dir', "data/processed/tiles")
     metadata_output_dir = data_loader_config.get('metadata_output_dir', "data/processed/metadata")
     filter_overlaps = ocr_config.get('filter_overlaps', True)
 
-    # Make paths absolute
-    if not os.path.isabs(tiles_base_dir):
-        tiles_base_dir = os.path.join(project_root, tiles_base_dir)
-    if not os.path.isabs(metadata_output_dir):
-        metadata_output_dir = os.path.join(project_root, metadata_output_dir)
 
-    logging.info(f"Looking for tiles in: {tiles_base_dir}")
-    if not os.path.exists(tiles_base_dir):
-        logging.error(f"Tiles directory does not exist: {tiles_base_dir}")
-        return
-
-    logging.info("Initializing EasyOCR detector with config...")
-    # Pass the ocr_config subsection to the detector
+    # ... (path and detector initialization remains the same) ...
     ocr_detector = EasyOCRDetector(ocr_config)
     metadata_manager = MetadataManager(metadata_output_dir, pipeline_version="1.0")
+
 
     image_dirs = [d for d in glob.glob(os.path.join(tiles_base_dir, "*")) if os.path.isdir(d)]
     if not image_dirs:
@@ -58,13 +49,15 @@ def process_tiles_with_ocr(config: Dict[str, Any]):
         image_name = os.path.basename(image_dir)
         logging.info(f"\n{'=' * 60}\nProcessing OCR for image: {image_name}")
 
-        yaml_metadata_path = os.path.join(image_dir, "tiles_metadata.yaml")
-        if not os.path.exists(yaml_metadata_path):
-            logging.error(f"Metadata file not found: {yaml_metadata_path}")
+        # MODIFIED: Look for tiles_metadata.json
+        json_metadata_path = os.path.join(image_dir, "tiles_metadata.json")
+        if not os.path.exists(json_metadata_path):
+            logging.error(f"Metadata file not found: {json_metadata_path}")
             continue
 
         try:
-            tile_metadata_list = SahiSlicer.load_metadata(yaml_metadata_path)
+            # SahiSlicer.load_metadata now correctly loads JSON
+            tile_metadata_list = SahiSlicer.load_metadata(json_metadata_path)
             tile_metadata_map = {tm.tile_id: tm for tm in tile_metadata_list}
 
             tile_files = glob.glob(os.path.join(image_dir, "tile_*.png")) + glob.glob(
@@ -105,10 +98,9 @@ def load_full_config(config_dir="configs"):
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(message)s')
-    # Load the entire configuration from the 'configs' directory
+    # The pipeline config files are still YAML, so this part is correct
     full_config = load_full_config()
     if not full_config:
         logging.error("No config files found. Aborting.")
     else:
-        # Pass the full config to the processing function
         process_tiles_with_ocr(full_config)

@@ -4,21 +4,13 @@ import numpy as np
 from typing import List, Dict
 import logging
 
-# Import both post-processing filter functions
-from .post_processing_filters import apply_aspect_ratio_filter, apply_soft_nms_filter
-
-
 class BBoxGrouper:
-    def __init__(self, config_path: str):
+    def __init__(self, config_path: str, debug: bool = False):
         with open(config_path, 'r') as f:
             config = yaml.safe_load(f)
 
         grouping_config = config.get('grouping', {})
-        post_group_config = config.get('post_group_filtering', {})
-        aspect_ratio_config = post_group_config.get('aspect_ratio_filter', {})
-        # Load the new Soft-NMS config
-        soft_nms_config = post_group_config.get('soft_nms', {})
-
+        self.debug = debug
         # Grouping parameters
         self.h_height_tolerance = grouping_config.get('h_height_tolerance', 0.3)
         self.h_proximity_factor = grouping_config.get('h_proximity_factor', 2.5)
@@ -26,16 +18,6 @@ class BBoxGrouper:
         self.v_width_tolerance = grouping_config.get('v_width_tolerance', 0.3)
         self.v_proximity_factor = grouping_config.get('v_proximity_factor', 1.5)
         self.v_min_horizontal_overlap = grouping_config.get('v_min_horizontal_overlap', 0.4)
-
-        # Post-grouping aspect ratio filter parameters
-        self.max_hw_ratio_horizontal = aspect_ratio_config.get('max_hw_ratio_horizontal', 0.8)
-        self.max_wh_ratio_vertical = aspect_ratio_config.get('max_wh_ratio_vertical', 0.8)
-
-        # NEW: Soft-NMS parameters
-        self.soft_nms_enabled = soft_nms_config.get('enabled', False)
-        self.soft_nms_iou_threshold = soft_nms_config.get('iou_threshold', 0.5)
-        self.soft_nms_sigma = soft_nms_config.get('sigma', 0.5)
-        self.soft_nms_min_confidence = soft_nms_config.get('min_confidence', 0.2)
 
     def _get_bbox_properties(self, detection: Dict) -> Dict:
         """Calculates geometric properties of a bounding box."""
@@ -158,29 +140,17 @@ class BBoxGrouper:
         }
 
     def process(self, all_detections: List[Dict]) -> List[Dict]:
-        """The main entry point for processing a list of detections."""
-        logging.info(f"Processing {len(all_detections)} detections without pre-filtering")
+        """
+        Main entry point for processing. Now only groups and merges.
+        NO internal filtering is performed.
+        """
+        logging.info(f"Grouping {len(all_detections)} pre-filtered detections...")
+
+        if not all_detections:
+            return []
 
         groups = self._group_boxes(all_detections)
         merged_lines = [self._merge_group(g) for g in groups if g]
 
-        # Apply aspect ratio filter first
-        aspect_filtered_lines = apply_aspect_ratio_filter(
-            merged_lines,
-            self.max_hw_ratio_horizontal,
-            self.max_wh_ratio_vertical
-        )
-
-        # UPDATED: Apply Soft-NMS filter if it's enabled in the config
-        if self.soft_nms_enabled:
-            final_lines = apply_soft_nms_filter(
-                aspect_filtered_lines,
-                self.soft_nms_iou_threshold,
-                self.soft_nms_sigma,
-                self.soft_nms_min_confidence
-            )
-        else:
-            final_lines = aspect_filtered_lines
-            logging.info("Soft-NMS filter is disabled.")
-
-        return final_lines
+        logging.info(f"Grouping complete. Produced {len(merged_lines)} raw text lines.")
+        return merged_lines

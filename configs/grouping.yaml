@@ -1,42 +1,32 @@
 # configs/grouping.yaml
 
-# --- Grouping Parameters ---
-# These control how individual text boxes are grouped into lines.
+# --- Grouping Parameters (No changes) ---
 grouping:
-  # Minimum OCR confidence for a detection to be considered for grouping.
-  confidence_threshold: 0.4
-
-  # --- Parameters for HORIZONTAL text grouping (0 degrees) ---
   h_height_tolerance: 0.3
   h_proximity_factor: 0.75
   h_min_vertical_overlap: 0.1
-
-  # --- Parameters for VERTICAL text grouping (90 degrees) ---
   v_width_tolerance: 0.3
   v_proximity_factor: 0.75
   v_min_horizontal_overlap: 0.1
 
-# --- Post-Grouping Filtering ---
-# Filters applied to the final, merged text lines.
-post_group_filtering:
-  aspect_ratio_filter:
-    # For horizontal text (0°), drop if (height / width) > this value.
-    # A true horizontal line should have a low h/w ratio.
-    # Example: 0.8 means width must be at least 1.25x height. Set to 0 to disable.
-    max_hw_ratio_horizontal: 0.3
+# --- 1. Pre-Grouping Filters (Applied before grouping) ---
+pre_group_filtering:
+  # Basic quality filters
+  min_confidence: 0.3
+  min_area: 10  # Min bbox area in pixels to be considered
 
-    # For vertical text (90°), drop if (width / height) > this value.
-    # A true vertical line should have a low w/h ratio.
-    # Example: 0.8 means height must be at least 1.25x width. Set to 0 to disable.
-    max_wh_ratio_vertical: 0.3
-
-  # NEW: Soft-NMS Filter configuration
+  # Soft-NMS Filter (now applied before grouping)
   soft_nms:
-    # Set to true to enable this filter.
     enabled: true
-    # IoU threshold to start applying suppression.
     iou_threshold: 0.5
-    # Sigma for the Gaussian decay function. Higher sigma = less suppression.
     sigma: 0.5
-    # Minimum confidence score to keep a box after suppression.
-    min_confidence: 0.2
+    min_confidence: 0.3 # Min confidence to keep a box after suppression
+
+# --- 2. Post-Grouping Filters (Applied after grouping) ---
+post_group_filtering:
+  # P&ID-specific aspect ratio filtering
+  smart_aspect_ratio:
+    enabled: true
+    # Adaptive thresholds based on text length: max_ratio = base_ratio + (text_length * length_factor)
+    base_ratio: 0.3
+    length_factor: 0.02

@@ -10,7 +10,7 @@
       <excludeFolder url="file://$MODULE_DIR$/models" />
       <excludeFolder url="file://$MODULE_DIR$/tests" />
     </content>
-    <orderEntry type="jdk" jdkName="Python 3.11 virtualenv at D:\Stuff\P&amp;ID text extraction pipeline\.venv" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Python 3.11 (P-ID-text-extraction)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
 </module>

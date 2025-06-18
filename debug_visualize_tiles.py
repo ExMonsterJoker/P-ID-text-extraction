@@ -34,13 +34,56 @@ def draw_bounding_box(img, bbox, color=(0, 255, 0), thickness=2):
     cv2.polylines(img, [pts], isClosed=True, color=color, thickness=thickness)
 
 
-def draw_label(img, text, bbox, font_scale=0.5, color=(255, 0, 0), thickness=1):
+def draw_label(img, text, bbox, font_scale=0.5, color=(255, 255, 255), thickness=1):
     """
-    Draws a text label at the top-left corner of the bounding box.
+    Draws a text label inside the bounding box with a background for better visibility.
+    Adjusts the text position dynamically based on the box size.
     """
-    top_left_point = min(bbox, key=lambda p: (p[0], p[1]))
-    x, y = int(top_left_point[0]), int(top_left_point[1])
-    cv2.putText(img, text, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, font_scale, color, thickness, cv2.LINE_AA)
+    # Calculate the bounding box dimensions
+    min_x = min(p[0] for p in bbox)
+    min_y = min(p[1] for p in bbox)
+    max_x = max(p[0] for p in bbox)
+    max_y = max(p[1] for p in bbox)
+
+    # Create a background for the label
+    text_size = cv2.getTextSize(text, cv2.FONT_HERSHEY_PLAIN, font_scale, thickness)[0]
+    box_x = min_x
+    box_y = min_y - text_size[1] - 5  # Adjust above the box
+    if box_y < 0:  # Adjust if it overflows beyond the image
+        box_y = min_y + 5
+
+    cv2.rectangle(img, (box_x, box_y), (box_x + text_size[0], box_y + text_size[1]), color, -1)  # Fill background
+    cv2.putText(img, text, (box_x, box_y + text_size[1]), cv2.FONT_HERSHEY_PLAIN, font_scale, (0, 0, 0), thickness,
+                cv2.LINE_AA)  # Draw text
+
+
+def format_detection_label(detection, mode="detailed"):
+    """
+    Formats the detection information into a readable label.
+
+    Args:
+        detection: Dictionary containing detection information
+        mode: "detailed" for full info, "compact" for shorter labels
+
+    Returns:
+        Formatted string for the label
+    """
+    text = detection.get('text', 'N/A')
+    confidence = detection.get('confidence', 0)
+    rotation_angle = detection.get('rotation_angle', 0)
+
+    # Format confidence as percentage
+    conf_percent = confidence * 100
+
+    # Format rotation angle with degree symbol
+    rotation_text = f"{rotation_angle}°"
+
+    if mode == "detailed":
+        return f"'{text}' | {conf_percent:.1f}% | {rotation_text}"
+    elif mode == "compact":
+        return f"'{text}' ({conf_percent:.0f}%, {rotation_text})"
+    else:
+        return f"'{text}'"
 
 
 def visualize_tile_results(image_name):
@@ -75,10 +118,15 @@ def visualize_tile_results(image_name):
                     detections = json.load(f)
                 for det in detections:
                     if not (bbox := det.get('bbox')): continue
+
+                    # Get orientation for color coding
                     orientation = det.get('rotation_angle', 0)
                     box_color = (0, 165, 255) if orientation == 90 else (0, 255, 0)  # Orange for vertical
+
                     draw_bounding_box(image, bbox, color=box_color)
-                    label = f"{det.get('text', '')} | conf: {det.get('confidence', 0):.2f} | rot: {orientation}d"
+
+                    # Create formatted label with confidence and orientation
+                    label = format_detection_label(det, mode="detailed")
                     draw_label(image, label, bbox)
             else:
                 logging.warning(f"Missing OCR JSON for tile: {tile_filename}")
@@ -145,17 +193,22 @@ def visualize_full_image_results(image_name):
                 tile_x_origin, tile_y_origin = tile_coords[0], tile_coords[1]
                 global_bbox = [[pt[0] + tile_x_origin, pt[1] + tile_y_origin] for pt in tile_bbox]
 
-                text = det.get('text', '')
-                confidence = det.get('confidence', 0)
-
-                # Green for horizontal (0d), Orange for vertical (90d)
+                # Green for horizontal (0°), Orange for vertical (90°)
                 orientation = det.get('rotation_angle', 0)
                 box_color = (0, 165, 255) if orientation == 90 else (0, 255, 0)
 
-                draw_bounding_box(image, global_bbox, color=box_color, thickness=max(1, image.shape[1] // 1500))
+                # Calculate thickness based on image size
+                thickness = max(1, image.shape[1] // 10000)
+
+                draw_bounding_box(image, global_bbox, color=box_color, thickness=thickness)
+
+                # Use compact mode for full image to avoid overcrowding
+                label = format_detection_label(det, mode="compact")
                 draw_label(
-                    image, f"{text}", global_bbox,
-                    font_scale=0.6, color=(255, 0, 0), thickness=max(1, image.shape[1] // 1500)
+                    image, label, global_bbox,
+                    font_scale=max(0.1, image.shape[1] / 10000),
+                    color=(255, 0, 0),
+                    thickness=thickness
                 )
                 detection_count += 1
 

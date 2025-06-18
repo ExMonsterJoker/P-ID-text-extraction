@@ -1,6 +1,16 @@
-PyYAML~=6.0.2
-opencv-python~=4.10.0.84
-numpy~=2.2.6
-pillow~=11.2.1
-sahi~=0.11.23
-torch==2.7.0+cu128
+# Main OCR Engine
+easyocr
+
+# Re-OCR Engine
+paddleocr
+
+# Core Libraries
+numpy
+pandas
+opencv-python-headless
+pyyaml
+sahi
+Pillow
+scikit-learn
+matplotlib
+tqdm

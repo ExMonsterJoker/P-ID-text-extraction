@@ -7,6 +7,7 @@ import numpy as np
 from typing import List, Tuple, Dict, Any, cast, Iterable
 from dataclasses import dataclass
 from sahi.slicing import slice_image
+import json
 import yaml
 # Disable PIL image size limits at module level
 Image.MAX_IMAGE_PIXELS = None
@@ -164,10 +165,11 @@ class SahiSlicer:
 
 
     def save_metadata(self, metadata_list: List[TileMetadata], output_path: str):
-        """Save metadata to YAML file"""
+        """Save metadata to JSON file"""
+        # ... (metadata_dict creation is the same) ...
         metadata_dict = {
-            "source_image": metadata_list[0].source_image,
-            "original_size": metadata_list[0].original_image_size,
+            "source_image": metadata_list[0].source_image if metadata_list else "",
+            "original_size": metadata_list[0].original_image_size if metadata_list else (0,0),
             "tile_size": self.tile_size,
             "overlap_ratio": self.overlap_ratio,
             "num_tiles": len(metadata_list),
@@ -182,15 +184,18 @@ class SahiSlicer:
             ]
         }
 
+        # MODIFIED: Use json.dump instead of yaml.safe_dump
         with open(output_path, 'w') as f:
-            yaml.safe_dump(metadata_dict, f, sort_keys=False)
+            json.dump(metadata_dict, f, indent=2)
 
     @staticmethod
     def load_metadata(metadata_path: str) -> List[TileMetadata]:
-        """Load metadata from YAML file"""
+        """Load metadata from JSON file"""
+        # MODIFIED: Use json.load instead of yaml.safe_load
         with open(metadata_path, 'r') as f:
-            data = yaml.safe_load(f)
+            data = json.load(f)
 
+        # ... (rest of the loading logic remains the same) ...
         metadata_list = []
         for tile_data in data["tiles"]:
             metadata = TileMetadata(
@@ -205,7 +210,6 @@ class SahiSlicer:
             metadata_list.append(metadata)
 
         return metadata_list
-
 if __name__ == "__main__":
     import glob
 
@@ -226,8 +230,6 @@ if __name__ == "__main__":
     os.makedirs("data/processed/metadata/detection_metadata", exist_ok=True)
     os.makedirs("data/processed/metadata/core_tile_metadata", exist_ok=True)
     os.makedirs("data/processed/metadata/core_detection_metadata", exist_ok=True)
-
-
 
     # Initialize the slicer
     slicer = SahiSlicer(config)

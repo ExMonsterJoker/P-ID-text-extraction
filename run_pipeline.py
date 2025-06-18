@@ -22,9 +22,8 @@ sys.path.insert(0, PROJECT_ROOT)
 from src.data_loader.sahi_slicer import SahiSlicer
 from src.data_loader.metadata_manager import MetadataManager
 from src.text_detection.process_tiles_ocr import process_tiles_with_ocr
+# The grouping main now handles all filtering internally
 from src.grouping.run_grouping_pipeline import main as run_grouping_main
-from src.grouping.visualize_final_groups import visualize_final_results
-from src.grouping.post_processing_filters import apply_aspect_ratio_filter
 from src.cropping.cropping_Images import crop_image
 from src.visualization.visualizer import visualize_annotations
 import json
@@ -32,7 +31,6 @@ import json
 # From root (if you have PDF conversion)
 try:
     from PDF_to_image import pdf_to_image_high_quality
-
     PDF_CONVERTER_AVAILABLE = True
 except ImportError:
     PDF_CONVERTER_AVAILABLE = False
@@ -56,7 +54,6 @@ def load_config(config_dir: str) -> Dict:
     Loads YAML configuration files from a directory, skipping empty or invalid files.
     """
     config = {}
-    # This call works correctly with 'from glob import glob'
     config_files = glob(os.path.join(config_dir, '*.yaml'))
 
     if not config_files:
@@ -68,7 +65,6 @@ def load_config(config_dir: str) -> Dict:
         try:
             with open(config_path, 'r') as f:
                 single_config = yaml.safe_load(f)
-
                 if single_config:
                     config.update(single_config)
                     logging.info(f"Successfully loaded and merged config from: {config_path}")
@@ -132,7 +128,7 @@ def run_slicing_step(input_dir: str, config: dict):
             image_output_dir = os.path.join(output_dir, image_filename)
             os.makedirs(image_output_dir, exist_ok=True)
 
-            metadata_path = os.path.join(image_output_dir, "tiles_metadata.yaml")
+            metadata_path = os.path.join(image_output_dir, "tiles_metadata.json")
             slicer.save_metadata(metadata, metadata_path)
             logging.info(f"Saved metadata for {len(metadata)} tiles to {metadata_path}")
 
@@ -162,16 +158,18 @@ def run_metadata_step(config: dict):
 
     for image_dir in image_dirs:
         try:
-            yaml_path = os.path.join(image_dir, "tiles_metadata.yaml")
-            if not os.path.exists(yaml_path):
-                logging.warning(f"No 'tiles_metadata.yaml' in {image_dir}. Skipping.")
+            # MODIFIED: Look for tiles_metadata.json
+            json_path = os.path.join(image_dir, "tiles_metadata.json")
+            if not os.path.exists(json_path):
+                logging.warning(f"No 'tiles_metadata.json' in {image_dir}. Skipping.")
                 continue
 
-            with open(yaml_path, 'r') as f:
-                source_image = yaml.safe_load(f)["source_image"]
+            with open(json_path, 'r') as f:
+                source_image = json.load(f)["source_image"]
 
             logging.info(f"Generating core metadata for: {Path(source_image).name}")
-            tile_metadata = SahiSlicer.load_metadata(yaml_path)
+            # The load_metadata function is now correctly loading JSON
+            tile_metadata = SahiSlicer.load_metadata(json_path)
             core_tiles = manager.compute_core_tiles(tile_metadata)
             manager.save_core_tile_metadata(core_tiles, source_image)
             logging.info(f"Saved core metadata for {len(core_tiles)} tiles.")
@@ -187,51 +185,12 @@ def run_ocr_step(config: dict):
     logging.info("--- Finished OCR Processing ---")
 
 
-def run_grouping_step(config: dict, grouping_args: argparse.Namespace):
-    """Runs the text grouping and passes the debug arguments."""
-    logging.info("--- Starting Step 4: Text Grouping ---")
-    # Pass the arguments to the grouping script's main function
+def run_grouping_and_filtering_step(config: dict, grouping_args: argparse.Namespace):
+    """Runs the entire text grouping and filtering pipeline."""
+    logging.info("--- Starting Step 4: Text Grouping and Filtering ---")
     run_grouping_main(grouping_args)
-    logging.info("--- Finished Text Grouping ---")
+    logging.info("--- Finished Text Grouping and Filtering ---")
 
-def run_filtering_step(config: dict):
-    """Applies post-processing filters to the grouped text."""
-    logging.info("--- Starting Step 5: Post-Group Filtering ---")
-
-    grouped_dir = "data/processed/metadata/final_grouped_text"
-    filter_config = config.get('post_group_filtering', {}).get('aspect_ratio_filter', {})
-
-    max_hw_ratio_horizontal = filter_config.get('max_hw_ratio_horizontal', 0.8)
-    max_wh_ratio_vertical = filter_config.get('max_wh_ratio_vertical', 0.8)
-
-    grouped_files = glob(os.path.join(grouped_dir, '*_grouped_text.json'))
-
-    if not grouped_files:
-        logging.warning(f"No grouped text files found in '{grouped_dir}' to filter.")
-        return
-
-    for file_path in grouped_files:
-        try:
-            with open(file_path, 'r') as f:
-                grouped_lines = json.load(f)
-
-            # Apply the filter
-            filtered_lines = apply_aspect_ratio_filter(
-                grouped_lines,
-                max_hw_ratio_horizontal,
-                max_wh_ratio_vertical
-            )
-
-            # Overwrite the file with the filtered results
-            with open(file_path, 'w') as f:
-                json.dump(filtered_lines, f, indent=2)
-
-            logging.info(f"Filtered '{Path(file_path).name}' and saved results.")
-
-        except Exception as e:
-            logging.error(f"Failed to filter file {file_path}: {e}", exc_info=True)
-
-    logging.info("--- Finished Post-Group Filtering ---")
 
 def run_cropping_step(config: Dict):
     """
@@ -241,14 +200,15 @@ def run_cropping_step(config: Dict):
 
     cropping_config = config.get('cropping', {})
     image_source_dir = cropping_config.get('image_source_dir')
-    grouped_text_dir = cropping_config.get('grouped_text_dir')
+    # The directory for grouped text is now produced by the single grouping step
+    grouped_text_dir = "data/processed/metadata/final_grouped_text"
     output_dir = cropping_config.get('output_dir')
     padding = cropping_config.get('padding', 10)
     min_confidence = cropping_config.get('min_confidence', 0.5)
 
     if not all([grouped_text_dir, output_dir, image_source_dir]):
         logging.error(
-            "Cropping config missing required keys ('image_source_dir', 'grouped_text_dir', 'output_dir'). Skipping step.")
+            "Cropping config missing required keys ('image_source_dir', 'output_dir'). Check config. Skipping step.")
         return
 
     os.makedirs(output_dir, exist_ok=True)
@@ -277,7 +237,6 @@ def run_cropping_step(config: Dict):
             logging.info(f"  - No detections above confidence threshold {min_confidence} for {base_name}.")
             continue
 
-        # This now returns a manifest
         manifest_entries = crop_image(
             image_path=image_path,
             detections=filtered_detections,
@@ -388,7 +347,7 @@ def run_visualization_step(config: Dict):
     re_ocr_config = config.get('re_ocr', {})
 
     image_source_dir = config.get('pipeline', {}).get('input_dir')
-    annotation_dir = re_ocr_config.get('output_dir')  # From re-ocr config
+    annotation_dir = re_ocr_config.get('output_dir')
     output_dir = viz_config.get('output_dir')
 
     if not all([image_source_dir, annotation_dir, output_dir]):
@@ -396,7 +355,6 @@ def run_visualization_step(config: Dict):
             "Visualization config is missing required paths. Check pipeline:input_dir, re_ocr:output_dir, and visualization:output_dir. Skipping.")
         return
 
-    # Use the new visualizer function
     visualize_annotations(
         image_dir=image_source_dir,
         json_dir=annotation_dir,
@@ -411,10 +369,10 @@ def main():
     parser.add_argument("--input-dir", type=str, default="data/raw", help="Directory containing raw P&ID images.")
     parser.add_argument("--config-dir", type=str, default="configs", help="Directory containing YAML configuration files.")
     parser.add_argument("--start-at", type=str, default="pdf",
-                        choices=['pdf', 'slice', 'meta', 'ocr', 'group', 'filter', 'crop', 're_ocr', 'viz'],
+                        choices=['pdf', 'slice', 'meta', 'ocr', 'group', 'crop', 're_ocr', 'viz'],
                         help="The pipeline step to start from.")
     parser.add_argument("--stop-at", type=str, default="viz",
-                        choices=['pdf', 'slice', 'meta', 'ocr', 'group', 'filter', 'crop', 're_ocr', 'viz'],
+                        choices=['pdf', 'slice', 'meta', 'ocr', 'group', 'crop', 're_ocr', 'viz'],
                         help="The pipeline step to stop after.")
     parser.add_argument("--no-pdf", action="store_true", help="Explicitly skip the PDF conversion step.")
     parser.add_argument('--debug-grouping', action='store_true', help='Enable debug mode for the grouping step.')
@@ -429,6 +387,7 @@ def main():
     logging.info(f"Arguments: {args}")
 
     config = load_config(args.config_dir)
+    # The debug argument is now passed to the consolidated grouping step
     grouping_args = argparse.Namespace(debug=args.debug_grouping)
 
     pipeline_steps = {
@@ -436,14 +395,13 @@ def main():
         'slice': lambda: run_slicing_step(args.input_dir, config),
         'meta': lambda: run_metadata_step(config),
         'ocr': lambda: run_ocr_step(config),
-        'group': lambda: run_grouping_step(config, grouping_args),
-        'filter': lambda: run_filtering_step(config),
+        'group': lambda: run_grouping_and_filtering_step(config, grouping_args),
         'crop': lambda: run_cropping_step(config),
-        're_ocr': lambda: run_re_ocr_step(config), # NEW STEP ADDED
-        'viz': lambda: run_visualization_step(config) # Now visualizes re-ocr results
+        're_ocr': lambda: run_re_ocr_step(config),
+        'viz': lambda: run_visualization_step(config)
     }
 
-    step_order = ['pdf', 'slice', 'meta', 'ocr', 'group', 'filter', 'crop', 're_ocr', 'viz']
+    step_order = ['pdf', 'slice', 'meta', 'ocr', 'group', 'crop', 're_ocr', 'viz']
 
     try:
         start_index = step_order.index(args.start_at)

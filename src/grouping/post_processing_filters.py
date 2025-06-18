@@ -4,115 +4,128 @@ import logging
 from typing import List, Dict
 
 
-def calculate_iou(box1: List[List[int]], box2: List[List[int]]) -> float:
-    """
-    Calculates Intersection over Union (IoU) for two rectangular bounding boxes.
-    Assumes box format: [[min_x, min_y], [max_x, min_y], [max_x, max_y], [min_x, max_y]]
-    """
-    x1_min, y1_min = box1[0]
-    x1_max, y1_max = box1[2]
-
-    x2_min, y2_min = box2[0]
-    x2_max, y2_max = box2[2]
-
-    # Calculate intersection area
-    inter_x_min = max(x1_min, x2_min)
-    inter_y_min = max(y1_min, y2_min)
-    inter_x_max = min(x1_max, x2_max)
-    inter_y_max = min(y1_max, y2_max)
-    inter_area = max(0, inter_x_max - inter_x_min) * max(0, inter_y_max - inter_y_min)
-
-    # Calculate union area
-    box1_area = (x1_max - x1_min) * (y1_max - y1_min)
-    box2_area = (x2_max - x2_min) * (y2_max - y2_min)
-    union_area = box1_area + box2_area - inter_area
-
-    if union_area == 0:
+def calculate_box_area(bbox: List[List[int]]) -> float:
+    """Calculate the area of a bounding box from its vertices."""
+    try:
+        points = np.array(bbox)
+        x_coords = points[:, 0]
+        y_coords = points[:, 1]
+        width = np.max(x_coords) - np.min(x_coords)
+        height = np.max(y_coords) - np.min(y_coords)
+        return float(width * height)
+    except Exception:
         return 0.0
 
-    return inter_area / union_area
+
+def calculate_complete_iou(box1: List[List[int]], box2: List[List[int]]) -> float:
+    """Robust IoU calculation that handles any bbox format."""
+
+    def normalize_bbox(bbox):
+        points = np.array(bbox)
+        return [np.min(points[:, 0]), np.min(points[:, 1]), np.max(points[:, 0]), np.max(points[:, 1])]
+
+    try:
+        box1_norm = normalize_bbox(box1)
+        box2_norm = normalize_bbox(box2)
+        x1_min, y1_min, x1_max, y1_max = box1_norm
+        x2_min, y2_min, x2_max, y2_max = box2_norm
+
+        inter_x_min = max(x1_min, x2_min)
+        inter_y_min = max(y1_min, y2_min)
+        inter_x_max = min(x1_max, x2_max)
+        inter_y_max = min(y1_max, y2_max)
+
+        if inter_x_max <= inter_x_min or inter_y_max <= inter_y_min:
+            return 0.0
+
+        inter_area = (inter_x_max - inter_x_min) * (inter_y_max - inter_y_min)
+        box1_area = (x1_max - x1_min) * (y1_max - y1_min)
+        box2_area = (x2_max - x2_min) * (y2_max - y2_min)
+        union_area = box1_area + box2_area - inter_area
+        return inter_area / union_area if union_area > 0 else 0.0
+    except Exception as e:
+        logging.warning(f"Error calculating IoU: {e}")
+        return 0.0
 
 
 def apply_soft_nms_filter(
-    lines: List[Dict],
-    iou_threshold: float,
-    sigma: float,
-    min_confidence: float
+        detections: List[Dict],
+        iou_threshold: float,
+        sigma: float,
+        min_confidence: float
 ) -> List[Dict]:
     """
-    Applies Soft-NMS to a list of detected lines. Instead of removing overlapping
-    boxes, it decays their confidence scores using a Gaussian penalty.
+    Applies Soft-NMS to a list of detections.
+    This version is robust and works on both raw detections (pre-grouping)
+    and merged lines (post-grouping).
     """
-    if not lines:
+    if not detections:
         return []
 
-    logging.info(f"Applying Soft-NMS with IoU threshold={iou_threshold}, sigma={sigma}, min_confidence={min_confidence}")
+    logging.info(f"Applying Soft-NMS to {len(detections)} items...")
 
-    # Work on a copy of the lines list
-    all_lines = [line.copy() for line in lines]
+    # Work with a copy to avoid modifying the original list in place
+    sorted_dets = [d.copy() for d in detections]
 
-    # Sort detections by confidence score in descending order
-    all_lines.sort(key=lambda x: x['confidence'], reverse=True)
+    # Sort by confidence
+    sorted_dets.sort(key=lambda x: x['confidence'], reverse=True)
 
-    for i in range(len(all_lines)):
-        # Iterate through the rest of the boxes to apply suppression
-        for j in range(i + 1, len(all_lines)):
-            iou = calculate_iou(all_lines[i]['bbox'], all_lines[j]['bbox'])
+    for i in range(len(sorted_dets)):
+        for j in range(i + 1, len(sorted_dets)):
+            # MODIFICATION: Use 'bbox' from grouped lines, or fall back to 'bbox_original' for raw detections.
+            box_i = sorted_dets[i].get('bbox') or sorted_dets[i].get('bbox_original')
+            box_j = sorted_dets[j].get('bbox') or sorted_dets[j].get('bbox_original')
 
-            # If overlap is above the threshold, apply the Gaussian penalty
+            # Skip if for some reason a box is missing
+            if not box_i or not box_j:
+                continue
+
+            iou = calculate_complete_iou(box_i, box_j)
+
             if iou > iou_threshold:
                 weight = np.exp(-(iou * iou) / sigma)
-                all_lines[j]['confidence'] *= weight
+                sorted_dets[j]['confidence'] *= weight
 
-    # Filter out lines that have fallen below the minimum confidence threshold
-    final_lines = [line for line in all_lines if line['confidence'] >= min_confidence]
-
-    logging.info(f"Soft-NMS reduced lines from {len(lines)} to {len(final_lines)}.")
-    return final_lines
+    final_detections = [d for d in sorted_dets if d['confidence'] >= min_confidence]
+    logging.info(f"Soft-NMS reduced items from {len(detections)} to {len(final_detections)}.")
+    return final_detections
 
 
-def apply_aspect_ratio_filter(
+def apply_smart_aspect_ratio_filter(
         merged_lines: List[Dict],
-        max_hw_ratio_horizontal: float,
-        max_wh_ratio_vertical: float
+        base_ratio: float,
+        length_factor: float
 ) -> List[Dict]:
-    """
-    Filters merged text lines based on their aspect ratio, which can remove
-    many common false positives.
-    (This function remains unchanged)
-    """
+    """P&ID-specific aspect ratio filtering based on text length."""
     if not merged_lines:
         return []
 
-    filtered_results = []
+    filtered = []
     for line in merged_lines:
         bbox = np.array(line['bbox'])
         w = np.max(bbox[:, 0]) - np.min(bbox[:, 0])
         h = np.max(bbox[:, 1]) - np.min(bbox[:, 1])
 
-        if w == 0 or h == 0:
-            continue  # Avoid division by zero for invalid boxes
+        if w <= 0 or h <= 0: continue
 
         orientation = line.get('orientation', 0)
-        keep = True
+        text_length = len(line.get('text', ''))
 
-        # Filter horizontal lines that are "too tall" for their width
-        if orientation == 0 and max_hw_ratio_horizontal > 0:
-            if (h / w) > max_hw_ratio_horizontal:
-                keep = False
-                logging.debug(
-                    f"Dropped horizontal line (h/w={(h / w):.2f} > {max_hw_ratio_horizontal}): '{line['text']}'")
+        # Adaptive thresholds based on text length
+        max_ratio = base_ratio + (text_length * length_factor)
 
-        # Filter vertical lines that are "too wide" for their height
-        elif orientation == 90 and max_wh_ratio_vertical > 0:
-            if (w / h) > max_wh_ratio_vertical:
-                keep = False
-                logging.debug(f"Dropped vertical line (w/h={(w / h):.2f} > {max_wh_ratio_vertical}): '{line['text']}'")
+        keep = False
+        if orientation == 0:  # Horizontal
+            if (h / w) <= max_ratio:
+                keep = True
+        else:  # Vertical
+            if (w / h) <= max_ratio:
+                keep = True
 
         if keep:
-            filtered_results.append(line)
+            filtered.append(line)
+        else:
+            logging.debug(f"Dropped by smart aspect ratio filter: '{line['text']}'")
 
-    if len(merged_lines) > len(filtered_results):
-        logging.info(f"Aspect ratio filter reduced lines from {len(merged_lines)} to {len(filtered_results)}.")
-
-    return filtered_results
+    logging.info(f"Smart aspect ratio filter reduced lines from {len(merged_lines)} to {len(filtered)}.")
+    return filtered
