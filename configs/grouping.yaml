@@ -19,7 +19,7 @@ pre_group_filtering:
   soft_nms:
     enabled: true
     iou_threshold: 0.5
-    sigma: 0.5
+    sigma: 1
     min_confidence: 0.3 # Min confidence to keep a box after suppression
 
 # --- 2. Post-Grouping Filters (Applied after grouping) ---

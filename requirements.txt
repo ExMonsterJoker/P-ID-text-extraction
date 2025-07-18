@@ -1,9 +1,6 @@
 # Main OCR Engine
 easyocr
 
-# Re-OCR Engine
-paddleocr
-
 # Core Libraries
 numpy
 pandas

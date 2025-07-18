@@ -10,7 +10,7 @@ pipeline:
 
 # --- SAHI Slicer Configuration ---
 sahi_slicer:
-  tile_size: 2108
+  tile_size: 1440
   overlap_ratio: 0.5
   min_area_ratio: 0.1
   verbose: False
@@ -33,6 +33,12 @@ ocr:
   confidence_threshold: 0.4
   rotation_angles: [0, 90]
   filter_overlaps: True
+
+# --- Coordinate Conversion Configuration ---
+coordinate_conversion:
+  image_dpi: 600  # DPI for converting image coordinates to PDF points
+  image_perspective_dir: "data/processed/metadata/final_annotations"
+  pdf_perspective_dir: "data/outputs/json_pdf_perspective"
 
 # --- NEW: Visualization Configuration ---
 visualization:

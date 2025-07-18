@@ -19,6 +19,7 @@ PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, PROJECT_ROOT)
 
 # --- Import Core Logic from Project Modules ---
+from src.convert_coord import main as run_coordinate_conversion
 from src.data_loader.sahi_slicer import SahiSlicer
 from src.data_loader.metadata_manager import MetadataManager
 from src.text_detection.process_tiles_ocr import process_tiles_with_ocr
@@ -338,6 +339,35 @@ def run_re_ocr_step(config: Dict):
     logging.info("--- Finished Step: Re-OCR ---")
 
 
+def run_coordinate_conversion_step(config: Dict):
+    """
+    Runs the coordinate conversion step to convert image coordinates to PDF points.
+    """
+    logging.info("--- Starting Step: Coordinate Conversion ---")
+
+    coord_config = config.get('coordinate_conversion', {})
+    image_dpi = coord_config.get('image_dpi', 600)
+    image_perspective_dir = coord_config.get('image_perspective_dir', "data/processed/metadata/final_annotations")
+    pdf_perspective_dir = coord_config.get('pdf_perspective_dir', "data/outputs/json_pdf_perspective")
+
+    if not os.path.exists(image_perspective_dir):
+        logging.warning(
+            f"Image perspective directory not found: {image_perspective_dir}. Skipping coordinate conversion.")
+        return
+
+    try:
+        run_coordinate_conversion(
+            input_dir=image_perspective_dir,
+            image_perspective_dir=image_perspective_dir,
+            pdf_perspective_dir=pdf_perspective_dir,
+            dpi=image_dpi
+        )
+        logging.info(f"Coordinate conversion completed. Output saved to: {pdf_perspective_dir}")
+    except Exception as e:
+        logging.error(f"Failed to run coordinate conversion: {e}", exc_info=True)
+
+    logging.info("--- Finished Step: Coordinate Conversion ---")
+
 def run_visualization_step(config: Dict):
     """
     Visualizes the final text detections from the re-OCR step.
@@ -369,10 +399,10 @@ def main():
     parser.add_argument("--input-dir", type=str, default="data/raw", help="Directory containing raw P&ID images.")
     parser.add_argument("--config-dir", type=str, default="configs", help="Directory containing YAML configuration files.")
     parser.add_argument("--start-at", type=str, default="pdf",
-                        choices=['pdf', 'slice', 'meta', 'ocr', 'group', 'crop', 're_ocr', 'viz'],
+                        choices=['pdf', 'slice', 'meta', 'ocr', 'group', 'crop', 're_ocr', 'coord', 'viz'],
                         help="The pipeline step to start from.")
     parser.add_argument("--stop-at", type=str, default="viz",
-                        choices=['pdf', 'slice', 'meta', 'ocr', 'group', 'crop', 're_ocr', 'viz'],
+                        choices=['pdf', 'slice', 'meta', 'ocr', 'group', 'crop', 're_ocr', 'coord', 'viz'],
                         help="The pipeline step to stop after.")
     parser.add_argument("--no-pdf", action="store_true", help="Explicitly skip the PDF conversion step.")
     parser.add_argument('--debug-grouping', action='store_true', help='Enable debug mode for the grouping step.')
@@ -391,17 +421,19 @@ def main():
     grouping_args = argparse.Namespace(debug=args.debug_grouping)
 
     pipeline_steps = {
-        'pdf': lambda: run_pdf_conversion_step(args.input_dir, config) if not args.no_pdf else logging.info("Skipping PDF conversion."),
+        'pdf': lambda: run_pdf_conversion_step(args.input_dir, config) if not args.no_pdf else logging.info(
+            "Skipping PDF conversion."),
         'slice': lambda: run_slicing_step(args.input_dir, config),
         'meta': lambda: run_metadata_step(config),
         'ocr': lambda: run_ocr_step(config),
         'group': lambda: run_grouping_and_filtering_step(config, grouping_args),
         'crop': lambda: run_cropping_step(config),
         're_ocr': lambda: run_re_ocr_step(config),
+        'coord': lambda: run_coordinate_conversion_step(config),
         'viz': lambda: run_visualization_step(config)
     }
 
-    step_order = ['pdf', 'slice', 'meta', 'ocr', 'group', 'crop', 're_ocr', 'viz']
+    step_order = ['pdf', 'slice', 'meta', 'ocr', 'group', 'crop', 're_ocr', 'coord', 'viz']
 
     try:
         start_index = step_order.index(args.start_at)
