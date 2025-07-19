@@ -30,9 +30,13 @@ data_loader:
 ocr:
   languages: ['en']
   gpu: True
-  confidence_threshold: 0.4
+  confidence_threshold: 0.1
   rotation_angles: [0, 90]
   filter_overlaps: True
+  detector: "craft" # craft or dbnet18
+  text_threshold: 0.1
+  link_threshold: 0.1
+  bbox_min_score: 0.4
 
 # --- Coordinate Conversion Configuration ---
 coordinate_conversion:
@@ -44,3 +48,4 @@ coordinate_conversion:
 visualization:
   # The directory where the final visualization images will be saved.
   output_dir: "data/outputs/visualizations_final"
+

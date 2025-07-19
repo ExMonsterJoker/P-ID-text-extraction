@@ -5,13 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="3cda8e01-a2d5-4f88-ab9f-b6d0a9d1f64d" name="Changes" comment="LGTM">
-      <change afterPath="$PROJECT_DIR$/coord_conversion.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/convert_coord.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/text_detection/text_detection.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/configs/base.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/configs/base.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/grouping.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/configs/grouping.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/run_pipeline.py" beforeDir="false" afterPath="$PROJECT_DIR$/run_pipeline.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/data_loader/metadata_manager.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/data_loader/metadata_manager.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/text_detection/process_tiles_ocr.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/text_detection/process_tiles_ocr.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -27,6 +25,11 @@
   </component>
   <component name="Git.Settings">
     <option name="PUSH_AUTO_UPDATE" value="true" />
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="main" />
+      </map>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="GitHubPullRequestSearchHistory">{
@@ -77,11 +80,12 @@
     &quot;Python.process_tiles_ocr.executor&quot;: &quot;Run&quot;,
     &quot;Python.run_text_detection.executor&quot;: &quot;Run&quot;,
     &quot;Python.sahi_slicer.executor&quot;: &quot;Run&quot;,
+    &quot;Python.text_detection.executor&quot;: &quot;Run&quot;,
     &quot;Python.visualize_final_groups.executor&quot;: &quot;Run&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
     &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;TestNewGrouping&quot;,
     &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
     &quot;ignore_missing_gitignore&quot;: &quot;true&quot;,
     &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
@@ -111,7 +115,7 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-js-predefined-d6986cc7102b-b26f3e71634d-JavaScript-WS-251.26094.131" />
+        <option value="bundled-python-sdk-9f8e2b94138c-36ea0e71a18c-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-251.26094.141" />
       </set>
     </attachedChunks>
   </component>
@@ -248,7 +252,15 @@
       <option name="project" value="LOCAL" />
       <updated>1750231690639</updated>
     </task>
-    <option name="localTasksCounter" value="13" />
+    <task id="LOCAL-00013" summary="LGTM">
+      <option name="closed" value="true" />
+      <created>1752800031589</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1752800031589</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
