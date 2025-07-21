@@ -17,19 +17,6 @@ except ImportError:
 
 
 @dataclass
-class CoreTileMetadata:
-    """Core tile metadata with non-overlapping regions"""
-    tile_id: str
-    original_coordinates: Tuple[int, int, int, int]  # [x0, y0, x1, y1]
-    core_coordinates: Tuple[int, int, int, int]  # [x0, y0, core_x1, core_y1]
-    grid_position: Tuple[int, int]  # [row, col]
-    has_right_neighbor: bool
-    has_bottom_neighbor: bool
-    overlap_width: int
-    overlap_height: int
-
-
-@dataclass
 class OCRDetection:
     """OCR detection result"""
     text: str
@@ -62,12 +49,10 @@ class MetadataManager:
 
         # Create metadata storage directories
         self.tile_metadata_dir = os.path.join(output_dir, "tile_metadata")
-        self.core_tile_metadata_dir = os.path.join(output_dir, "core_tile_metadata")
         self.global_metadata_dir = os.path.join(output_dir, "global_metadata")
         self.detection_metadata_dir = os.path.join(output_dir, "detection_metadata")
 
-        for dir_path in [self.tile_metadata_dir, self.global_metadata_dir, self.detection_metadata_dir,
-                         self.core_tile_metadata_dir]:
+        for dir_path in [self.tile_metadata_dir, self.global_metadata_dir, self.detection_metadata_dir]:
             os.makedirs(dir_path, exist_ok=True)
 
     def save_ocr_metadata(self, ocr_detections: List['OCRDetection'], tile_path: str, tile_metadata: 'TileMetadata'):
@@ -126,8 +111,10 @@ class MetadataManager:
     def load_tile_metadata(self, source_image: str) -> List[TileMetadata]:
         base_name = os.path.splitext(os.path.basename(source_image))[0]
         input_path = os.path.join(self.tile_metadata_dir, f"{base_name}_tiles.json")
-        if not os.path.exists(input_path): raise FileNotFoundError(f"No tile metadata for {source_image}")
-        with open(input_path, 'r') as f: data = json.load(f)
+        if not os.path.exists(input_path):
+            raise FileNotFoundError(f"No tile metadata for {source_image}")
+        with open(input_path, 'r') as f:
+            data = json.load(f)
         return [TileMetadata(**t) for t in data["tiles"]]
 
     def init_global_metadata(self, source_image: str, config: Dict[str, Any]) -> GlobalMetadata:
@@ -135,10 +122,15 @@ class MetadataManager:
         from hashlib import md5
         config_str = json.dumps(config, sort_keys=True)
         config_hash = md5(config_str.encode()).hexdigest()[:8]
-        return GlobalMetadata(source_image=source_image, processing_time=datetime.datetime.now().isoformat(),
-                              pipeline_version=self.pipeline_version, config_hash=config_hash)
+        return GlobalMetadata(
+            source_image=source_image,
+            processing_time=datetime.datetime.now().isoformat(),
+            pipeline_version=self.pipeline_version,
+            config_hash=config_hash
+        )
 
     def save_global_metadata(self, metadata: GlobalMetadata):
         base_name = os.path.splitext(os.path.basename(metadata.source_image))[0]
         output_path = os.path.join(self.global_metadata_dir, f"{base_name}_global.json")
-        with open(output_path, 'w') as f: json.dump(asdict(metadata), f, indent=2)
+        with open(output_path, 'w') as f:
+            json.dump(asdict(metadata), f, indent=2)

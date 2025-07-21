@@ -5,11 +5,24 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="3cda8e01-a2d5-4f88-ab9f-b6d0a9d1f64d" name="Changes" comment="LGTM">
-      <change afterPath="$PROJECT_DIR$/src/text_detection/text_detection.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/configs/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/configs/config_manager.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/grouping/grouping_logic.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/grouping/visualize_grouping.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/configs/base.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/configs/base.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/folder_tree_maker.py" beforeDir="false" afterPath="$PROJECT_DIR$/folder_tree_maker.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/run_pipeline.py" beforeDir="false" afterPath="$PROJECT_DIR$/run_pipeline.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/data_loader/metadata_manager.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/data_loader/metadata_manager.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/text_detection/process_tiles_ocr.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/text_detection/process_tiles_ocr.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/grouping/bbox_grouper.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/grouping/filter_by_core.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/grouping/post_processing_filters.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/grouping/run_grouping_pipeline.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/grouping/visualize_final_groups.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/text_detection/ocr_detector.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/text_detection/process_tiles_ocr.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/text_detection/text_detection.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/text_detection/text_detection.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/universal_converter.py" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -70,11 +83,13 @@
     &quot;Python tests.Python tests in test_sahi_slicer.py.executor&quot;: &quot;Run&quot;,
     &quot;Python.Convert_Image_coordinate_to_PDF_coordinate.executor&quot;: &quot;Run&quot;,
     &quot;Python.PDF_to_image.executor&quot;: &quot;Run&quot;,
+    &quot;Python.config_manager.executor&quot;: &quot;Run&quot;,
     &quot;Python.convert_coord.executor&quot;: &quot;Run&quot;,
     &quot;Python.convert_to_ppocr_format_annotations.executor&quot;: &quot;Run&quot;,
     &quot;Python.debug_visualize_filters.executor&quot;: &quot;Run&quot;,
     &quot;Python.debug_visualize_tiles.executor&quot;: &quot;Run&quot;,
     &quot;Python.folder_tree_maker.executor&quot;: &quot;Run&quot;,
+    &quot;Python.grouping_logic.executor&quot;: &quot;Run&quot;,
     &quot;Python.metadata_manager.executor&quot;: &quot;Run&quot;,
     &quot;Python.ocr_detector.executor&quot;: &quot;Run&quot;,
     &quot;Python.process_tiles_ocr.executor&quot;: &quot;Run&quot;,
@@ -82,6 +97,7 @@
     &quot;Python.sahi_slicer.executor&quot;: &quot;Run&quot;,
     &quot;Python.text_detection.executor&quot;: &quot;Run&quot;,
     &quot;Python.visualize_final_groups.executor&quot;: &quot;Run&quot;,
+    &quot;Python.visualize_grouping.executor&quot;: &quot;Run&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
     &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
@@ -96,7 +112,7 @@
     &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
     &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
     &quot;run.code.analysis.last.selected.profile&quot;: &quot;pProject Default&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
 }</component>
@@ -105,11 +121,11 @@
       <recent name="D:\OneDrive\Radiant Utama\Personal Project\PID Analyzer\Docker PID\P&amp;ID text extraction pipeline\src" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\Stuff\P-ID-text-extraction\configs" />
       <recent name="D:\Stuff\P-ID-text-extraction\src" />
       <recent name="D:\Stuff\P&amp;ID text extraction pipeline\data\outputs" />
       <recent name="D:\Stuff\P&amp;ID text extraction pipeline\src" />
       <recent name="D:\Stuff\P&amp;ID text extraction pipeline" />
-      <recent name="D:\Stuff\P&amp;ID text extraction pipeline\data\raw" />
     </key>
   </component>
   <component name="SharedIndexes">
@@ -260,7 +276,15 @@
       <option name="project" value="LOCAL" />
       <updated>1752800031589</updated>
     </task>
-    <option name="localTasksCounter" value="14" />
+    <task id="LOCAL-00014" summary="LGTM">
+      <option name="closed" value="true" />
+      <created>1752941725308</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1752941725308</updated>
+    </task>
+    <option name="localTasksCounter" value="15" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">

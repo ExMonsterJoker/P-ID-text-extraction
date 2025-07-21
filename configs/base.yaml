@@ -5,7 +5,7 @@ pipeline:
   min_text_height: 6
   max_text_height: 100
   device: "cuda:0"  # or "cpu"
-  debug: True
+  debug: False
   debug_visualization: True
 
 # --- SAHI Slicer Configuration ---
@@ -19,24 +19,33 @@ sahi_slicer:
 data_loader:
   sahi_slicer_output_dir: "data/processed/tiles"
   metadata_output_dir: "data/processed/metadata"
-  tile_metadata_dir : "data/processed/metadata/tile_metadata"
-  group_detection_metadata_dir : "data/processed/metadata/group_detection_metadata"
-  global_metadata_dir : "data/processed/metadata/global_metadata"
-  detection_metadata_dir : "data/processed/metadata/detection_metadata"
-  core_tile_metadata_dir : "data/processed/metadata/core_tile_metadata"
-  core_detection_metadata_dir : "data/processed/metadata/core_detection_metadata"
+  group_detection_metadata_dir: "data/processed/metadata/group_detection_metadata"
+  global_metadata_dir: "data/processed/metadata/global_metadata"
+  detection_metadata_dir: "data/processed/metadata/detection_metadata"
 
-# --- OCR Configuration ---
+# --- Text Detection Configuration (Updated for CRAFT + EasyOCR) ---
 ocr:
   languages: ['en']
   gpu: True
+  # CRAFT Detection Parameters
+  detector: "craft"  # craft or dbnet18
+  text_threshold: 0.7  # Threshold for text detection confidence
+  link_threshold: 0.4  # Threshold for linking text components
+  low_text: 0.4  # Low text threshold for detection
+  # EasyOCR Recognition Parameters (used in re-OCR step)
   confidence_threshold: 0.1
   rotation_angles: [0, 90]
   filter_overlaps: True
-  detector: "craft" # craft or dbnet18
-  text_threshold: 0.1
-  link_threshold: 0.1
   bbox_min_score: 0.4
+
+grouping:
+  high_overlap_threshold: 0.1  # IoU threshold for high overlap (character fragments)
+  high_iou_threshold: 0.95  # Very high IoU threshold for keeping larger box instead of merging
+  contained_box_threshold: 0.95  # IoL threshold for suppressing contained boxes (Step 0)
+  vertical_alignment_factor: 0.2  # For horizontal text: max vertical center distance = min_height * factor
+  horizontal_alignment_factor: 0.2  # For vertical text: max horizontal center distance = min_width * factor
+  proximity_factor: 1  # Max gap = max_dimension * factor
+  neighborhood_expansion_factor: 1  # Expansion factor for neighborhood filter (50% = 25% on each side)
 
 # --- Coordinate Conversion Configuration ---
 coordinate_conversion:
@@ -48,4 +57,3 @@ coordinate_conversion:
 visualization:
   # The directory where the final visualization images will be saved.
   output_dir: "data/outputs/visualizations_final"
-

@@ -7,6 +7,7 @@ from dataclasses import dataclass
 import yaml
 import logging
 import matplotlib.pyplot as plt
+from configs import get_config, get_config_value
 
 @dataclass
 class text_detection_data_class:
@@ -162,29 +163,17 @@ def load_yaml_config(file_path: str) -> Dict[str, Any]:
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(message)s')
 
-    # 1. Define paths
-    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-    config_file_path = os.path.join(project_root, "configs", "base.yaml")
-    logging.info(f"Loading configuration from: {config_file_path}")
+    # 1. Get config using the new manager
+    # No more manual path finding or file loading!
+    ocr_config = get_config('ocr')
+    logging.info(f"Loaded OCR config: {ocr_config}")
 
-    # 2. Load config and initialize detector
-    full_config = load_yaml_config(config_file_path)
-    if not full_config:
-        logging.error("Configuration could not be loaded. Using default settings.")
-        # Default CRAFT parameters
-        ocr_config = {
-            'languages': ['en'],
-            'gpu': True,
-            'text_threshold': 0.7,
-            'link_threshold': 0.4,
-            'low_text': 0.4
-        }
-    else:
-        ocr_config = full_config.get('ocr', {})
-
+    if not ocr_config:
+        logging.error("OCR configuration could not be loaded. Exiting.")
+    # 2. Initialize the detector
     try:
         detector = text_detection(ocr_config)
-
+        project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
         # 3. Define the path to the image you want to process
         sample_image_path = os.path.join(
             project_root, "data", "processed", "tiles",

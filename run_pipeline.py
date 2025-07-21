@@ -22,9 +22,9 @@ sys.path.insert(0, PROJECT_ROOT)
 from src.convert_coord import main as run_coordinate_conversion
 from src.data_loader.sahi_slicer import SahiSlicer
 from src.data_loader.metadata_manager import MetadataManager
-from src.text_detection.process_tiles_ocr import process_tiles_with_ocr
-# The grouping main now handles all filtering internally
-from src.grouping.run_grouping_pipeline import main as run_grouping_main
+# Updated import for the new text detection logic
+from src.text_detection.text_detection import text_detection
+from src.grouping.grouping_logic import BoundingBoxGrouper
 from src.cropping.cropping_Images import crop_image
 from src.visualization.visualizer import visualize_annotations
 import json
@@ -144,8 +144,8 @@ def run_slicing_step(input_dir: str, config: dict):
 
 
 def run_metadata_step(config: dict):
-    """Generates core (non-overlapping) metadata for each set of tiles."""
-    logging.info("--- Starting Step 2: Metadata Generation (Core Tiles) ---")
+    """Generates metadata for each set of tiles (simplified - no core tiles computation)."""
+    logging.info("--- Starting Step 2: Metadata Generation ---")
 
     data_loader_config = config.get('data_loader', {})
     metadata_base_dir = data_loader_config.get('metadata_output_dir', "data/processed/metadata")
@@ -159,39 +159,173 @@ def run_metadata_step(config: dict):
 
     for image_dir in image_dirs:
         try:
-            # MODIFIED: Look for tiles_metadata.json
+            # Look for tiles_metadata.json
             json_path = os.path.join(image_dir, "tiles_metadata.json")
             if not os.path.exists(json_path):
                 logging.warning(f"No 'tiles_metadata.json' in {image_dir}. Skipping.")
                 continue
 
             with open(json_path, 'r') as f:
-                source_image = json.load(f)["source_image"]
+                metadata_file = json.load(f)
+                source_image = metadata_file["source_image"]
 
-            logging.info(f"Generating core metadata for: {Path(source_image).name}")
-            # The load_metadata function is now correctly loading JSON
+            logging.info(f"Processing metadata for: {Path(source_image).name}")
+            # Simply load and save the tile metadata (no core tiles computation)
             tile_metadata = SahiSlicer.load_metadata(json_path)
-            core_tiles = manager.compute_core_tiles(tile_metadata)
-            manager.save_core_tile_metadata(core_tiles, source_image)
-            logging.info(f"Saved core metadata for {len(core_tiles)} tiles.")
+            manager.save_tile_metadata(tile_metadata, source_image)
+            logging.info(f"Saved tile metadata for {len(tile_metadata)} tiles.")
 
         except Exception as e:
-            logging.error(f"Failed to generate metadata for {image_dir}: {e}", exc_info=True)
+            logging.error(f"Failed to process metadata for {image_dir}: {e}", exc_info=True)
+
+    logging.info("--- Finished Metadata Generation ---")
 
 
-def run_ocr_step(config: dict):
-    """Runs the OCR step on all sliced tiles."""
-    logging.info("--- Starting Step 3: OCR Processing ---")
-    process_tiles_with_ocr(config)
-    logging.info("--- Finished OCR Processing ---")
+def run_text_detection_step(config: dict):
+    """Runs the new text detection step using CRAFT detector on all sliced tiles."""
+    logging.info("--- Starting Step 3: Text Detection (CRAFT + EasyOCR) ---")
+
+    try:
+        # Get configuration
+        ocr_config = config.get('ocr', {})
+        data_loader_config = config.get('data_loader', {})
+
+        # Get directories
+        tiles_base_dir = data_loader_config.get('sahi_slicer_output_dir', 'data/processed/tiles')
+        detection_metadata_dir = data_loader_config.get('detection_metadata_dir', 'data/processed/metadata/detection_metadata')
+
+        # Create output directory
+        os.makedirs(detection_metadata_dir, exist_ok=True)
+
+        # Initialize text detector
+        detector = text_detection(ocr_config)
+        logging.info("Text detector initialized successfully")
+
+        # Get all image directories that contain tiles
+        image_dirs = [d for d in glob(os.path.join(tiles_base_dir, "*")) if os.path.isdir(d)]
+
+        if not image_dirs:
+            logging.warning("No sliced image directories found for text detection.")
+            return
+
+        total_tiles_processed = 0
+        total_detections_found = 0
+
+        for image_dir in image_dirs:
+            try:
+                image_name = os.path.basename(image_dir)
+                logging.info(f"Processing text detection for image: {image_name}")
+
+                # Create output directory for this image's detections
+                image_detection_dir = os.path.join(detection_metadata_dir, image_name)
+                os.makedirs(image_detection_dir, exist_ok=True)
+
+                # Load tile metadata to get tiles info
+                tiles_metadata_path = os.path.join(image_dir, "tiles_metadata.json")
+                if not os.path.exists(tiles_metadata_path):
+                    logging.warning(f"No tiles metadata found for {image_name}. Skipping.")
+                    continue
+
+                with open(tiles_metadata_path, 'r') as f:
+                    tiles_metadata = json.load(f)
+
+                source_image = tiles_metadata.get("source_image", "")
+                original_image_size = tiles_metadata.get("original_image_size", [])
+
+                # Get all tile image files
+                tile_files = glob(os.path.join(image_dir, "tile_*.png"))
+                logging.info(f"Found {len(tile_files)} tile files for {image_name}")
+
+                image_detections_count = 0
+
+                for tile_file in tile_files:
+                    try:
+                        tile_filename = os.path.basename(tile_file)
+                        tile_id = tile_filename.replace("tile_", "").replace(".png", "")
+
+                        # Run text detection on this tile
+                        detections = detector.detect_text(tile_file)
+
+                        if not detections:
+                            continue
+
+                        # Find corresponding tile metadata
+                        tile_metadata = None
+                        for tile_info in tiles_metadata.get('tiles', []):
+                            if tile_info.get('tile_id') == tile_id:
+                                tile_metadata = tile_info
+                                break
+
+                        if not tile_metadata:
+                            logging.warning(f"No metadata found for tile {tile_id}")
+                            continue
+
+                        # Convert detections to JSON format with metadata
+                        tile_detections = []
+                        for detection in detections:
+                            detection_data = {
+                                'bbox': detection.bbox,
+                                'bbox_normalized': detection.bbox_normalized,
+                                'rotation_angle': detection.rotation_angle,
+                                'tile_id': tile_id,
+                                'tile_path': tile_file,
+                                'tile_coordinates': tile_metadata.get('coordinates', []),
+                                'grid_position': tile_metadata.get('grid_position', []),
+                                'source_image': source_image,
+                                'original_image_size': original_image_size,
+                                'detection_type': 'craft_detection',
+                                'tile_size': tile_metadata.get('tile_size', [])
+                            }
+                            tile_detections.append(detection_data)
+
+                        # Save detections for this tile
+                        if tile_detections:
+                            output_file = os.path.join(image_detection_dir, f"{tile_id}_ocr.json")
+                            with open(output_file, 'w') as f:
+                                json.dump(tile_detections, f, indent=2)
+
+                            image_detections_count += len(tile_detections)
+                            total_tiles_processed += 1
+
+                    except Exception as e:
+                        logging.error(f"Error processing tile {tile_file}: {e}")
+                        continue
+
+                total_detections_found += image_detections_count
+                logging.info(f"Completed {image_name}: {image_detections_count} detections from {len(tile_files)} tiles")
+
+            except Exception as e:
+                logging.error(f"Error processing image directory {image_dir}: {e}", exc_info=True)
+                continue
+
+        logging.info(f"Text detection completed:")
+        logging.info(f"  Total tiles processed: {total_tiles_processed}")
+        logging.info(f"  Total detections found: {total_detections_found}")
+        logging.info(f"  Average detections per tile: {total_detections_found/total_tiles_processed:.2f}" if total_tiles_processed > 0 else "  No tiles processed")
+
+    except Exception as e:
+        logging.error(f"Error in text detection step: {e}", exc_info=True)
+        raise
+
+    logging.info("--- Finished Text Detection ---")
 
 
 def run_grouping_and_filtering_step(config: dict, grouping_args: argparse.Namespace):
-    """Runs the entire text grouping and filtering pipeline."""
+    """Runs the entire text grouping and filtering pipeline using the new BoundingBoxGrouper."""
     logging.info("--- Starting Step 4: Text Grouping and Filtering ---")
-    run_grouping_main(grouping_args)
-    logging.info("--- Finished Text Grouping and Filtering ---")
 
+    try:
+        # Initialize the new BoundingBoxGrouper
+        grouper = BoundingBoxGrouper()
+
+        # Run the processing for all images
+        grouper.process_all_images()
+
+        logging.info("--- Finished Text Grouping and Filtering ---")
+
+    except Exception as e:
+        logging.error(f"Error in grouping step: {e}", exc_info=True)
+        raise
 
 def run_cropping_step(config: Dict):
     """
@@ -399,10 +533,10 @@ def main():
     parser.add_argument("--input-dir", type=str, default="data/raw", help="Directory containing raw P&ID images.")
     parser.add_argument("--config-dir", type=str, default="configs", help="Directory containing YAML configuration files.")
     parser.add_argument("--start-at", type=str, default="pdf",
-                        choices=['pdf', 'slice', 'meta', 'ocr', 'group', 'crop', 're_ocr', 'coord', 'viz'],
+                        choices=['pdf', 'slice', 'meta', 'detect', 'group', 'crop', 're_ocr', 'coord', 'viz'],
                         help="The pipeline step to start from.")
     parser.add_argument("--stop-at", type=str, default="viz",
-                        choices=['pdf', 'slice', 'meta', 'ocr', 'group', 'crop', 're_ocr', 'coord', 'viz'],
+                        choices=['pdf', 'slice', 'meta', 'detect', 'group', 'crop', 're_ocr', 'coord', 'viz'],
                         help="The pipeline step to stop after.")
     parser.add_argument("--no-pdf", action="store_true", help="Explicitly skip the PDF conversion step.")
     parser.add_argument('--debug-grouping', action='store_true', help='Enable debug mode for the grouping step.')
@@ -417,7 +551,6 @@ def main():
     logging.info(f"Arguments: {args}")
 
     config = load_config(args.config_dir)
-    # The debug argument is now passed to the consolidated grouping step
     grouping_args = argparse.Namespace(debug=args.debug_grouping)
 
     pipeline_steps = {
@@ -425,7 +558,7 @@ def main():
             "Skipping PDF conversion."),
         'slice': lambda: run_slicing_step(args.input_dir, config),
         'meta': lambda: run_metadata_step(config),
-        'ocr': lambda: run_ocr_step(config),
+        'detect': lambda: run_text_detection_step(config),  # Updated from 'ocr' to 'detect'
         'group': lambda: run_grouping_and_filtering_step(config, grouping_args),
         'crop': lambda: run_cropping_step(config),
         're_ocr': lambda: run_re_ocr_step(config),
@@ -433,7 +566,7 @@ def main():
         'viz': lambda: run_visualization_step(config)
     }
 
-    step_order = ['pdf', 'slice', 'meta', 'ocr', 'group', 'crop', 're_ocr', 'coord', 'viz']
+    step_order = ['pdf', 'slice', 'meta', 'detect', 'group', 'crop', 're_ocr', 'coord', 'viz']  # Updated step order
 
     try:
         start_index = step_order.index(args.start_at)
