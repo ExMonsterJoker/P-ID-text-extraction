@@ -11,19 +11,22 @@ pipeline:
 # --- SAHI Slicer Configuration ---
 sahi_slicer:
   tile_size: 1440
-  overlap_ratio: 0.5
+  overlap_ratio: 0.1
   min_area_ratio: 0.1
   verbose: False
 
 # --- Data Loader Paths ---
 data_loader:
+  image_dir: "data/raw"
   sahi_slicer_output_dir: "data/processed/tiles"
   metadata_output_dir: "data/processed/metadata"
   group_detection_metadata_dir: "data/processed/metadata/group_detection_metadata"
   global_metadata_dir: "data/processed/metadata/global_metadata"
   detection_metadata_dir: "data/processed/metadata/detection_metadata"
+  cropping_output_dir: "data/processed/cropping"
+  text_recognition_output_dir: "data/processed/metadata/final_annotations"
 
-# --- Text Detection Configuration (Updated for CRAFT + EasyOCR) ---
+# --- Text Detection Configuration (Updated for CRAFT + TrOCR) ---
 ocr:
   languages: ['en']
   gpu: True
@@ -32,9 +35,9 @@ ocr:
   text_threshold: 0.7  # Threshold for text detection confidence
   link_threshold: 0.4  # Threshold for linking text components
   low_text: 0.4  # Low text threshold for detection
-  # EasyOCR Recognition Parameters (used in re-OCR step)
-  confidence_threshold: 0.1
-  rotation_angles: [0, 90]
+  # TrOCR Recognition Parameters
+  confidence_threshold: 0.1  # Minimum confidence for TrOCR recognition results
+  model_name: "microsoft/trocr-small-printed"  # TrOCR model to use
   filter_overlaps: True
   bbox_min_score: 0.4
 
@@ -57,3 +60,8 @@ coordinate_conversion:
 visualization:
   # The directory where the final visualization images will be saved.
   output_dir: "data/outputs/visualizations_final"
+
+# --- Cropping Configuration ---
+cropping:
+  output_dir: "data/processed/cropping"
+  padding: -10

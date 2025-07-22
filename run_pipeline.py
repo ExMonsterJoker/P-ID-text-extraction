@@ -24,6 +24,7 @@ from src.data_loader.sahi_slicer import SahiSlicer
 from src.data_loader.metadata_manager import MetadataManager
 # Updated import for the new text detection logic
 from src.text_detection.text_detection import text_detection
+from src.text_detection.text_recognition import run_text_recognition_step
 from src.grouping.grouping_logic import BoundingBoxGrouper
 from src.cropping.cropping_Images import crop_image
 from src.visualization.visualizer import visualize_annotations
@@ -230,7 +231,7 @@ def run_text_detection_step(config: dict):
                     tiles_metadata = json.load(f)
 
                 source_image = tiles_metadata.get("source_image", "")
-                original_image_size = tiles_metadata.get("original_image_size", [])
+                original_image_size = tiles_metadata.get("original_size", [])  # Fixed: use "original_size" instead of "original_image_size"
 
                 # Get all tile image files
                 tile_files = glob(os.path.join(image_dir, "tile_*.png"))
@@ -272,7 +273,7 @@ def run_text_detection_step(config: dict):
                                 'tile_coordinates': tile_metadata.get('coordinates', []),
                                 'grid_position': tile_metadata.get('grid_position', []),
                                 'source_image': source_image,
-                                'original_image_size': original_image_size,
+                                'original_image_size': original_image_size,  # Now correctly populated from "original_size"
                                 'detection_type': 'craft_detection',
                                 'tile_size': tile_metadata.get('tile_size', [])
                             }
@@ -330,62 +331,136 @@ def run_grouping_and_filtering_step(config: dict, grouping_args: argparse.Namesp
 def run_cropping_step(config: Dict):
     """
     Runs the cropping process and creates a manifest for each set of crops.
+    Updated to work with the new grouping logic output and use config parameters.
     """
-    logging.info("--- Starting Step: Cropping Images ---")
+    logging.info("--- Starting Step 5: Cropping Images ---")
 
-    cropping_config = config.get('cropping', {})
-    image_source_dir = cropping_config.get('image_source_dir')
-    # The directory for grouped text is now produced by the single grouping step
-    grouped_text_dir = "data/processed/metadata/final_grouped_text"
-    output_dir = cropping_config.get('output_dir')
-    padding = cropping_config.get('padding', 10)
-    min_confidence = cropping_config.get('min_confidence', 0.5)
+    try:
+        cropping_config = config.get('cropping', {})
+        data_loader_config = config.get('data_loader', {})
+        pipeline_config = config.get('pipeline', {})
 
-    if not all([grouped_text_dir, output_dir, image_source_dir]):
-        logging.error(
-            "Cropping config missing required keys ('image_source_dir', 'output_dir'). Check config. Skipping step.")
-        return
+        # Get paths from configuration - using group_detection_metadata_dir instead of final_grouped_text_dir
+        image_source_dir = pipeline_config.get('input_dir', 'data/raw')
+        grouped_text_dir = data_loader_config.get('group_detection_metadata_dir', 'data/processed/metadata/group_detection_metadata')
+        output_dir = cropping_config.get('output_dir', 'data/processed/cropping')
+        padding = cropping_config.get('padding', 10)
 
-    os.makedirs(output_dir, exist_ok=True)
-    json_files = glob(os.path.join(grouped_text_dir, '*_grouped_text.json'))
+        # Create output directory
+        os.makedirs(output_dir, exist_ok=True)
 
-    logging.info(f"Found {len(json_files)} JSON files to process for cropping.")
+        # Check if grouped text directory exists
+        if not os.path.exists(grouped_text_dir):
+            logging.error(f"Grouped text directory not found: {grouped_text_dir}")
+            logging.error("Make sure the grouping step has been completed successfully.")
+            return
 
-    for json_file in json_files:
-        base_name = os.path.basename(json_file).replace('_grouped_text.json', '')
-        logging.info(f"Processing: {base_name}")
+        # First, let's see what files are actually in the directory
+        all_files = os.listdir(grouped_text_dir)
+        logging.info(f"Files found in {grouped_text_dir}: {all_files}")
 
-        image_path = next(iter(glob(os.path.join(image_source_dir, f"{base_name}.*"))), None)
-        if not image_path:
-            logging.warning(f"  - Could not find matching image for '{base_name}'. Skipping.")
-            continue
+        # Try multiple patterns to find the grouped text JSON files
+        json_patterns = [
+            '*_grouped_text.json',
+            '*_grouped.json',
+            '*.json',
+            '*grouped*.json'
+        ]
 
-        with open(json_file, 'r') as f:
-            detections = json.load(f)
+        json_files = []
+        for pattern in json_patterns:
+            potential_files = glob(os.path.join(grouped_text_dir, pattern))
+            if potential_files:
+                json_files = potential_files
+                logging.info(f"Found JSON files using pattern '{pattern}': {[os.path.basename(f) for f in json_files]}")
+                break
 
-        image_output_dir = os.path.join(output_dir, base_name)
-        os.makedirs(image_output_dir, exist_ok=True)
+        if not json_files:
+            logging.warning(f"No JSON files found in: {grouped_text_dir}")
+            logging.warning("Available files in directory:")
+            for file in all_files:
+                logging.warning(f"  - {file}")
+            return
 
-        filtered_detections = [det for det in detections if det.get('confidence', 0) >= min_confidence]
+        logging.info(f"Found {len(json_files)} JSON files to process for cropping.")
 
-        if not filtered_detections:
-            logging.info(f"  - No detections above confidence threshold {min_confidence} for {base_name}.")
-            continue
+        total_crops_created = 0
+        total_images_processed = 0
 
-        manifest_entries = crop_image(
-            image_path=image_path,
-            detections=filtered_detections,
-            output_dir=image_output_dir,
-            padding=padding
-        )
+        for json_file in json_files:
+            try:
+                # Extract base name from different possible patterns
+                base_name = os.path.basename(json_file)
+                for suffix in ['_grouped_text.json', '_grouped.json', '.json']:
+                    if base_name.endswith(suffix):
+                        base_name = base_name.replace(suffix, '')
+                        break
 
-        if manifest_entries:
-            manifest_path = os.path.join(image_output_dir, "manifest.json")
-            with open(manifest_path, 'w') as f:
-                json.dump(manifest_entries, f, indent=2)
-            logging.info(f"  - Saved crop manifest to {manifest_path}")
+                logging.info(f"Processing cropping for: {base_name}")
 
-    logging.info("--- Finished Step: Cropping Images ---")
+                # Find the corresponding source image
+                possible_extensions = ['png', 'jpg', 'jpeg', 'tiff', 'tif']
+                image_path = None
+                for ext in possible_extensions:
+                    test_path = os.path.join(image_source_dir, f"{base_name}.{ext}")
+                    if os.path.exists(test_path):
+                        image_path = test_path
+                        break
+
+                if not image_path:
+                    logging.warning(f"  - Could not find source image for '{base_name}'. Skipping.")
+                    continue
+
+                # Load the grouped detections
+                with open(json_file, 'r') as f:
+                    detections = json.load(f)
+
+                if not detections:
+                    logging.info(f"  - No detections found in {base_name}. Skipping.")
+                    continue
+
+                # Create output directory for this image's crops
+                image_output_dir = os.path.join(output_dir, base_name)
+                os.makedirs(image_output_dir, exist_ok=True)
+
+                # Process all detections without confidence filtering
+                logging.info(f"  - Processing {len(detections)} detections (no confidence filtering)")
+
+                # Run the cropping
+                manifest_entries = crop_image(
+                    image_path=image_path,
+                    detections=detections,
+                    output_dir=image_output_dir,
+                    padding=padding
+                )
+
+                if manifest_entries:
+                    # Save the manifest
+                    manifest_path = os.path.join(image_output_dir, "manifest.json")
+                    with open(manifest_path, 'w') as f:
+                        json.dump(manifest_entries, f, indent=2)
+
+                    total_crops_created += len(manifest_entries)
+                    total_images_processed += 1
+
+                    logging.info(f"  - Created {len(manifest_entries)} crops and saved manifest to {manifest_path}")
+                else:
+                    logging.warning(f"  - No crops were created for {base_name}")
+
+            except Exception as e:
+                logging.error(f"Error processing {json_file}: {e}", exc_info=True)
+                continue
+
+        logging.info(f"Cropping completed:")
+        logging.info(f"  Total images processed: {total_images_processed}")
+        logging.info(f"  Total crops created: {total_crops_created}")
+        logging.info(f"  Average crops per image: {total_crops_created/total_images_processed:.2f}" if total_images_processed > 0 else "  No images processed")
+
+    except Exception as e:
+        logging.error(f"Error in cropping step: {e}", exc_info=True)
+        raise
+
+    logging.info("--- Finished Step 5: Cropping Images ---")
 
 
 def run_re_ocr_step(config: Dict):
@@ -527,16 +602,22 @@ def run_visualization_step(config: Dict):
     logging.info("--- Finished Step: Final Visualization ---")
 
 
+def run_text_recognition_step_pipeline(config: Dict):
+    """
+    Wrapper function to run the TrOCR text recognition step in the pipeline.
+    """
+    run_text_recognition_step(config)
+
 def main():
     """Main function to orchestrate the entire P&ID text extraction pipeline."""
     parser = argparse.ArgumentParser(description="P&ID Text Extraction Master Pipeline")
     parser.add_argument("--input-dir", type=str, default="data/raw", help="Directory containing raw P&ID images.")
     parser.add_argument("--config-dir", type=str, default="configs", help="Directory containing YAML configuration files.")
     parser.add_argument("--start-at", type=str, default="pdf",
-                        choices=['pdf', 'slice', 'meta', 'detect', 'group', 'crop', 're_ocr', 'coord', 'viz'],
+                        choices=['pdf', 'slice', 'meta', 'detect', 'group', 'crop', 'recognize', 'coord', 'viz'],
                         help="The pipeline step to start from.")
     parser.add_argument("--stop-at", type=str, default="viz",
-                        choices=['pdf', 'slice', 'meta', 'detect', 'group', 'crop', 're_ocr', 'coord', 'viz'],
+                        choices=['pdf', 'slice', 'meta', 'detect', 'group', 'crop', 'recognize', 'coord', 'viz'],
                         help="The pipeline step to stop after.")
     parser.add_argument("--no-pdf", action="store_true", help="Explicitly skip the PDF conversion step.")
     parser.add_argument('--debug-grouping', action='store_true', help='Enable debug mode for the grouping step.')
@@ -558,15 +639,15 @@ def main():
             "Skipping PDF conversion."),
         'slice': lambda: run_slicing_step(args.input_dir, config),
         'meta': lambda: run_metadata_step(config),
-        'detect': lambda: run_text_detection_step(config),  # Updated from 'ocr' to 'detect'
+        'detect': lambda: run_text_detection_step(config),
         'group': lambda: run_grouping_and_filtering_step(config, grouping_args),
         'crop': lambda: run_cropping_step(config),
-        're_ocr': lambda: run_re_ocr_step(config),
+        'recognize': lambda: run_text_recognition_step_pipeline(config),  # Updated to use TrOCR
         'coord': lambda: run_coordinate_conversion_step(config),
         'viz': lambda: run_visualization_step(config)
     }
 
-    step_order = ['pdf', 'slice', 'meta', 'detect', 'group', 'crop', 're_ocr', 'coord', 'viz']  # Updated step order
+    step_order = ['pdf', 'slice', 'meta', 'detect', 'group', 'crop', 'recognize', 'coord', 'viz']  # Updated step order
 
     try:
         start_index = step_order.index(args.start_at)
@@ -596,3 +677,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
