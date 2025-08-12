@@ -63,7 +63,8 @@ def crop_image(image_path: str, detections: List[Dict], output_dir: str, padding
                 "original_bbox": bbox_original_global,
                 "original_text": original_text,
                 "original_confidence": det.get('confidence'),
-                "orientation": det.get('orientation', 0)  # Default to 0 if missing
+                "orientation": det.get('orientation', 0),  # Default to 0 if missing
+                "original_image_size": det['original_image_size']
             })
 
         except Exception as e:

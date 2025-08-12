@@ -5,13 +5,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="3cda8e01-a2d5-4f88-ab9f-b6d0a9d1f64d" name="Changes" comment="LGTM">
-      <change afterPath="$PROJECT_DIR$/src/text_detection/text_recognition.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/configs/base.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/configs/base.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/cropping.yaml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/grouping.yaml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/configs/re_ocr.yaml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/run_pipeline.py" beforeDir="false" afterPath="$PROJECT_DIR$/run_pipeline.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/grouping/grouping_logic.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/grouping/grouping_logic.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/convert_coord.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/convert_coord.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/cropping/cropping_Images.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/cropping/cropping_Images.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/text_detection/text_detection.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/text_detection/text_detection.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/text_detection/text_recognition.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/text_detection/text_recognition.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -64,48 +65,48 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ASKED_SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "Python tests.Python tests in test_metadata_manager.py.executor": "Run",
-    "Python tests.Python tests in test_sahi_slicer.py.executor": "Run",
-    "Python.Convert_Image_coordinate_to_PDF_coordinate.executor": "Run",
-    "Python.PDF_to_image.executor": "Run",
-    "Python.config_manager.executor": "Run",
-    "Python.convert_coord.executor": "Run",
-    "Python.convert_to_ppocr_format_annotations.executor": "Run",
-    "Python.coord_conversion.executor": "Run",
-    "Python.debug_visualize_filters.executor": "Run",
-    "Python.debug_visualize_tiles.executor": "Run",
-    "Python.folder_tree_maker.executor": "Run",
-    "Python.grouping_logic.executor": "Run",
-    "Python.metadata_manager.executor": "Run",
-    "Python.ocr_detector.executor": "Run",
-    "Python.process_tiles_ocr.executor": "Run",
-    "Python.run_text_detection.executor": "Run",
-    "Python.sahi_slicer.executor": "Run",
-    "Python.text_detection.executor": "Run",
-    "Python.visualize_final_groups.executor": "Run",
-    "Python.visualize_grouping.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "git-widget-placeholder": "TestNewGrouping",
-    "ignore.virus.scanning.warn.message": "true",
-    "ignore_missing_gitignore": "true",
-    "junie.onboarding.icon.badge.shown": "true",
-    "last_opened_file_path": "D:/Stuff/P&ID text extraction pipeline",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "run.code.analysis.last.selected.profile": "pProject Default",
-    "settings.editor.selected.configurable": "preferences.pluginManager",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ASKED_SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;Python tests.Python tests in test_metadata_manager.py.executor&quot;: &quot;Run&quot;,
+    &quot;Python tests.Python tests in test_sahi_slicer.py.executor&quot;: &quot;Run&quot;,
+    &quot;Python.Convert_Image_coordinate_to_PDF_coordinate.executor&quot;: &quot;Run&quot;,
+    &quot;Python.PDF_to_image.executor&quot;: &quot;Run&quot;,
+    &quot;Python.config_manager.executor&quot;: &quot;Run&quot;,
+    &quot;Python.convert_coord.executor&quot;: &quot;Run&quot;,
+    &quot;Python.convert_to_ppocr_format_annotations.executor&quot;: &quot;Run&quot;,
+    &quot;Python.coord_conversion.executor&quot;: &quot;Run&quot;,
+    &quot;Python.debug_visualize_filters.executor&quot;: &quot;Run&quot;,
+    &quot;Python.debug_visualize_tiles.executor&quot;: &quot;Run&quot;,
+    &quot;Python.folder_tree_maker.executor&quot;: &quot;Run&quot;,
+    &quot;Python.grouping_logic.executor&quot;: &quot;Run&quot;,
+    &quot;Python.metadata_manager.executor&quot;: &quot;Run&quot;,
+    &quot;Python.ocr_detector.executor&quot;: &quot;Run&quot;,
+    &quot;Python.process_tiles_ocr.executor&quot;: &quot;Run&quot;,
+    &quot;Python.run_text_detection.executor&quot;: &quot;Run&quot;,
+    &quot;Python.sahi_slicer.executor&quot;: &quot;Run&quot;,
+    &quot;Python.text_detection.executor&quot;: &quot;Run&quot;,
+    &quot;Python.visualize_final_groups.executor&quot;: &quot;Run&quot;,
+    &quot;Python.visualize_grouping.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;TestNewGrouping&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;ignore_missing_gitignore&quot;: &quot;true&quot;,
+    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;D:/Stuff/P&amp;ID text extraction pipeline&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;run.code.analysis.last.selected.profile&quot;: &quot;pProject Default&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="D:\OneDrive\Radiant Utama\Personal Project\PID Analyzer\Docker PID\P&amp;ID text extraction pipeline\src" />
@@ -162,6 +163,7 @@
       <workItem from="1749601380568" duration="1032000" />
       <workItem from="1752753125200" duration="591000" />
       <workItem from="1753168968021" duration="73000" />
+      <workItem from="1753260621619" duration="648000" />
     </task>
     <task id="LOCAL-00001" summary="LGTM">
       <option name="closed" value="true" />
@@ -283,7 +285,15 @@
       <option name="project" value="LOCAL" />
       <updated>1753106882259</updated>
     </task>
-    <option name="localTasksCounter" value="16" />
+    <task id="LOCAL-00016" summary="LGTM">
+      <option name="closed" value="true" />
+      <created>1753187731108</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1753187731108</updated>
+    </task>
+    <option name="localTasksCounter" value="17" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">

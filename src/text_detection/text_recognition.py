@@ -6,6 +6,7 @@ from typing import List, Dict, Optional
 from PIL import Image
 from transformers import TrOCRProcessor, VisionEncoderDecoderModel
 from glob import glob
+from configs import get_config, get_config_value
 
 
 class TrOCRTextRecognition:
@@ -21,12 +22,17 @@ class TrOCRTextRecognition:
         Args:
             config: Configuration dictionary containing model settings
         """
-        self.config = config
+        ocr_config = get_config('ocr')
+        logging.info(f"Loaded OCR config: {ocr_config}")
+        if not ocr_config:
+            logging.error("OCR configuration could not be loaded. Exiting.")
+            return
+        self.config = ocr_config
         self.device = torch.device("cuda" if torch.cuda.is_available() and config.get('gpu', True) else "cpu")
-        self.min_confidence = config.get('confidence_threshold', 0.1)
+        self.min_confidence = config.get('confidence_threshold', 0.95)
+        self.model_name = config.get('model_name', "microsoft/trocr-small-printed")
 
         # Initialize TrOCR model and processor
-        self.model_name = "microsoft/trocr-small-printed"
         self.processor = None
         self.model = None
 
@@ -118,6 +124,14 @@ class TrOCRTextRecognition:
                 with open(manifest_path, 'r') as f:
                     manifest = json.load(f)
 
+                # Extract original_image_size from the first manifest item (should be same for all crops from same image)
+                original_image_size = None
+                if manifest and 'original_image_size' in manifest[0]:
+                    original_image_size = manifest[0]['original_image_size']
+                    logging.info(f"  - Found original image size: {original_image_size}")
+                else:
+                    logging.warning(f"  - No original_image_size found in manifest for {base_name}")
+
                 final_annotations = []
                 crops_processed = 0
 
@@ -137,12 +151,19 @@ class TrOCRTextRecognition:
 
                             # Apply confidence filtering if needed
                             if confidence >= self.min_confidence:
-                                final_annotations.append({
+                                # Create annotation with original bbox and image size
+                                annotation = {
                                     "text": recognized_text,
                                     "confidence": float(confidence),
-                                    "bbox": item['original_bbox'],
+                                    "bbox": item['original_bbox'],  # This is already in original image coordinates
                                     "crop_filename": item['crop_filename']
-                                })
+                                }
+
+                                # Add original_image_size if available
+                                if original_image_size:
+                                    annotation["original_image_size"] = original_image_size
+
+                                final_annotations.append(annotation)
                                 crops_processed += 1
                             else:
                                 logging.debug(f"  - Skipping low confidence recognition: {confidence:.3f} < {self.min_confidence}")
@@ -178,12 +199,12 @@ class TrOCRTextRecognition:
 
 def run_text_recognition_step(config: Dict) -> None:
     """
-    Main function to run the TrOCR text recognition step.
+    Main function to run the text recognition step.
 
     Args:
         config: Configuration dictionary from pipeline
     """
-    logging.info("--- Starting Step: TrOCR Text Recognition ---")
+    logging.info("--- Starting Step: Text Recognition ---")
 
     try:
         # Get configuration
@@ -227,4 +248,3 @@ if __name__ == "__main__":
 
     # Run text recognition
     run_text_recognition_step(config)
-

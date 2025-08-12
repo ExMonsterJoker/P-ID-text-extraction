@@ -1,7 +1,6 @@
 # run_pipeline.py
 import os
 import sys
-import glob
 import yaml
 import logging
 import argparse
@@ -19,7 +18,7 @@ PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, PROJECT_ROOT)
 
 # --- Import Core Logic from Project Modules ---
-from src.convert_coord import main as run_coordinate_conversion
+from src.convert_coord import main as run_coordinate_conversion, validate_json_with_pdf, test_dimension_validation
 from src.data_loader.sahi_slicer import SahiSlicer
 from src.data_loader.metadata_manager import MetadataManager
 # Updated import for the new text detection logic
@@ -184,7 +183,7 @@ def run_metadata_step(config: dict):
 
 def run_text_detection_step(config: dict):
     """Runs the new text detection step using CRAFT detector on all sliced tiles."""
-    logging.info("--- Starting Step 3: Text Detection (CRAFT + EasyOCR) ---")
+    logging.info("--- Starting Step 3: Text Detection (CRAFT/DBNet + EasyOCR) ---")
 
     try:
         # Get configuration
@@ -556,22 +555,29 @@ def run_coordinate_conversion_step(config: Dict):
 
     coord_config = config.get('coordinate_conversion', {})
     image_dpi = coord_config.get('image_dpi', 600)
-    image_perspective_dir = coord_config.get('image_perspective_dir', "data/processed/metadata/final_annotations")
+    # The source directory for JSONs is the output of the re_ocr step.
+    input_dir_json_dir = config.get('re_ocr', {}).get('output_dir', "data/processed/metadata/final_annotations")
+    image_perspective_dir = coord_config.get('image_perspective_dir', "data/outputs/image_perspective")
     pdf_perspective_dir = coord_config.get('pdf_perspective_dir', "data/outputs/json_pdf_perspective")
 
-    if not os.path.exists(image_perspective_dir):
+    if not os.path.exists(input_dir_json_dir):
         logging.warning(
-            f"Image perspective directory not found: {image_perspective_dir}. Skipping coordinate conversion.")
+            f"Input JSON directory not found: {input_dir_json_dir}. Skipping coordinate conversion.")
         return
 
     try:
+        # The main coordinate conversion function is called.
+        # Validation is off by default and only runs if convert_coord.py is executed directly.
         run_coordinate_conversion(
-            input_dir=image_perspective_dir,
+            input_dir_json_dir=input_dir_json_dir,
             image_perspective_dir=image_perspective_dir,
             pdf_perspective_dir=pdf_perspective_dir,
             dpi=image_dpi
         )
+
         logging.info(f"Coordinate conversion completed. Output saved to: {pdf_perspective_dir}")
+
+
     except Exception as e:
         logging.error(f"Failed to run coordinate conversion: {e}", exc_info=True)
 
@@ -677,4 +683,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

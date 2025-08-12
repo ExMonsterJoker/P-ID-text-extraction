@@ -66,12 +66,20 @@ class text_detection:
         text_threshold = self.config.get('text_threshold', 0.7)
         link_threshold = self.config.get('link_threshold', 0.4)
         low_text = self.config.get('low_text', 0.4)
+        height_ths = self.config.get('height_ths', 0.5)
+        width_ths = self.config.get('width_ths', 0.5)
+        slope_ths = self.config.get('slope_ths', 0.1)
+        ycenter_ths = self.config.get('ycenter_ths', 0.5)
 
         horizontal_lists, free_lists = self.reader.detect(
             image,
             text_threshold=text_threshold,
             link_threshold=link_threshold,
             low_text=low_text,
+            height_ths=height_ths,
+            width_ths=width_ths,
+            slope_ths=slope_ths,
+            ycenter_ths=ycenter_ths
         )
 
         all_detections_data = []
