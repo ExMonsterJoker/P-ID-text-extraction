@@ -12,16 +12,21 @@ from configs import get_config
 from torch.nn import functional as F
 
 class TrOCRTextRecognition:
-    def __init__(self, config: Dict):
-        ocr_config = get_config('ocr')
-        logging.info(f"Loaded OCR config: {ocr_config}")
-        if not ocr_config:
+    def __init__(self):
+        """
+        Initializes the TrOCR text recognizer.
+        Configuration is fetched automatically.
+        """
+        self.config = get_config('ocr')
+        logging.info(f"Loaded OCR config: {self.config}")
+        if not self.config:
             logging.error("OCR configuration could not be loaded. Exiting.")
+            # Added a return to stop initialization if config is missing
             return
-        self.config = ocr_config
-        self.device = torch.device("cuda" if torch.cuda.is_available() and config.get('gpu', True) else "cpu")
-        self.min_confidence = config.get('confidence_threshold', 0.95)
-        self.model_name = config.get('model_name', "microsoft/trocr-small-printed")
+
+        self.device = torch.device("cuda" if torch.cuda.is_available() and self.config.get('gpu', True) else "cpu")
+        self.min_confidence = self.config.get('confidence_threshold', 0.95)
+        self.model_name = self.config.get('model_name', "microsoft/trocr-small-printed")
 
         self.processor = None
         self.model = None
@@ -192,21 +197,27 @@ class TrOCRTextRecognition:
         logging.info(f"Successful EasyOCR fallback recognitions: {easyocr_success_count}")
 
 
-def run_text_recognition_step(config: Dict) -> None:
+def run_text_recognition_step() -> None:
+    """
+    Runs the full text recognition step, including TrOCR and EasyOCR fallback.
+    Fetches all required configuration internally.
+    """
     logging.info("--- Starting Step: Text Recognition (TrOCR + EasyOCR Fallback) ---")
     try:
-        ocr_config = config.get('ocr', {})
-        data_loader_config = config.get('data_loader', {})
-        cropping_config = config.get('cropping', {})
+        # Get required configuration sections
+        data_loader_config = get_config('data_loader')
+        cropping_config = get_config('cropping')
 
+        # Determine input/output directories from config
         input_dir = cropping_config.get('output_dir', 'data/processed/cropping')
         output_dir = data_loader_config.get('text_recognition_output_dir', 'data/processed/metadata/final_annotations')
 
         if not os.path.exists(input_dir):
-            logging.error(f"Input directory not found: {input_dir}")
+            logging.error(f"Input directory for text recognition not found: {input_dir}")
             return
 
-        recognizer = TrOCRTextRecognition(ocr_config)
+        # Initialize the recognizer (it will fetch its own 'ocr' config)
+        recognizer = TrOCRTextRecognition()
         recognizer.process_cropped_images(input_dir, output_dir)
 
     except Exception as e:
@@ -215,20 +226,11 @@ def run_text_recognition_step(config: Dict) -> None:
     logging.info("--- Finished Step: Text Recognition (TrOCR + EasyOCR Fallback) ---")
 
 
-
 if __name__ == "__main__":
     # Example usage for testing
-    import yaml
-
     logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(message)s')
 
-    # 1. Get config using the new manager
-    # No more manual path finding or file loading!
-    ocr_config = get_config('ocr')
-    logging.info(f"Loaded OCR config: {ocr_config}")
-
-    # Setup logging
-    logging.basicConfig(level=logging.INFO)
-
-    # Run text recognition
-    run_text_recognition_step(ocr_config)
+    # No need to get config here, the functions will do it.
+    logging.info("Running text recognition step for testing...")
+    run_text_recognition_step()
+    logging.info("Text recognition step finished.")

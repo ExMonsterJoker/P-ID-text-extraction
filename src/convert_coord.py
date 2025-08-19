@@ -319,29 +319,36 @@ def test_dimension_validation(json_path, pdf_path=None, dpi=600, pdf_base_dir='d
 if __name__ == "__main__":
     # Example usage
     import sys
+    from configs import get_config
 
     if len(sys.argv) > 1:
         if sys.argv[1] == "test" and len(sys.argv) > 2:
             # Test mode: python convert_coord.py test <json_path> [pdf_path] [dpi]
             json_path = sys.argv[2]
             pdf_path = sys.argv[3] if len(sys.argv) > 3 else None
-            dpi = int(sys.argv[4]) if len(sys.argv) > 4 else 600
+            dpi = int(sys.argv[4]) if len(sys.argv) > 4 else get_config('coordinate_conversion').get('image_dpi', 600)
             test_dimension_validation(json_path, pdf_path, dpi)
         else:
             print("Usage:")
             print("  python convert_coord.py test <json_path> [pdf_path] [dpi]")
-            print("  python convert_coord.py [input_dir] [image_output_dir] [pdf_output_dir] [dpi]")
+            print("  python convert_coord.py")
     else:
-        # Default behavior - process all files
-        input_dir = "data/raw"  # Default input directory
-        image_perspective_dir = "data/outputs/image_perspective"
-        pdf_perspective_dir = "data/outputs/pdf_perspective"
-        dpi = 600
+        # Default behavior - process all files using config
+        coord_config = get_config('coordinate_conversion')
+        # The input for this step is the output of the text recognition step
+        data_loader_config = get_config('data_loader')
 
-        print("Using default directories:")
-        print(f"  Input: {input_dir}")
-        print(f"  Image output: {image_perspective_dir}")
-        print(f"  PDF output: {pdf_perspective_dir}")
+        input_dir = data_loader_config.get('text_recognition_output_dir', 'data/processed/metadata/final_annotations')
+        image_perspective_dir = coord_config.get('image_perspective_dir', "data/outputs/image_perspective")
+        pdf_perspective_dir = coord_config.get('pdf_perspective_dir', "data/outputs/json_pdf_perspective")
+        dpi = coord_config.get('image_dpi', 600)
+        validate = coord_config.get('validate_dimensions', True)
+
+        print("Using directories from config:")
+        print(f"  Input JSONs: {input_dir}")
+        print(f"  Image perspective output: {image_perspective_dir}")
+        print(f"  PDF perspective output: {pdf_perspective_dir}")
         print(f"  DPI: {dpi}")
+        print(f"  Validation enabled: {validate}")
 
-        main(input_dir, image_perspective_dir, pdf_perspective_dir, dpi, validate_dimensions=True)
+        main(input_dir, image_perspective_dir, pdf_perspective_dir, dpi, validate_dimensions=validate)

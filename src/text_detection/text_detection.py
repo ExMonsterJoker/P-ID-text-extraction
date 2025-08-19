@@ -18,14 +18,12 @@ class text_detection_data_class:
 
 
 class text_detection:
-    def __init__(self, ocr_config: Dict[str, Any]):
+    def __init__(self):
         """
-        Initialize EasyOCR detector from a configuration dictionary.
-
-        Args:
-            ocr_config: Dictionary with OCR parameters.
+        Initialize the EasyOCR detector.
+        Configuration is fetched automatically from the global config manager.
         """
-        self.config = ocr_config
+        self.config = get_config('ocr')
         self.languages = self.config.get('languages', ['en'])
         self.gpu = self.config.get('gpu', True)
         self.reader = None
@@ -155,32 +153,14 @@ class text_detection:
 
         return image
 
-def load_yaml_config(file_path: str) -> Dict[str, Any]:
-    """Loads a single YAML configuration file."""
-    try:
-        with open(file_path, 'r') as f:
-            return yaml.safe_load(f) or {}
-    except FileNotFoundError:
-        logging.error(f"Config file not found at: {file_path}")
-        return {}
-    except yaml.YAMLError as e:
-        logging.error(f"Error parsing YAML file {file_path}: {e}")
-        return {}
-
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(message)s')
 
-    # 1. Get config using the new manager
-    # No more manual path finding or file loading!
-    ocr_config = get_config('ocr')
-    logging.info(f"Loaded OCR config: {ocr_config}")
-
-    if not ocr_config:
-        logging.error("OCR configuration could not be loaded. Exiting.")
-    # 2. Initialize the detector
+    # Config is now loaded automatically by the text_detection class.
+    # 1. Initialize the detector
     try:
-        detector = text_detection(ocr_config)
+        detector = text_detection()
         project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
         # 3. Define the path to the image you want to process
         sample_image_path = os.path.join(
