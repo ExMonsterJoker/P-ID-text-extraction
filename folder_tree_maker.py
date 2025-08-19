@@ -42,8 +42,7 @@ excluded = {'.venv',
             'cropping',
             'test',
             'pdf',
-            'debug_tile_visualizations',
-            'detection_metadata'
+            'debug_tile_visualizations'
             }
 
 folder_tree = scan_folder_tree(source_path, exclude_folders=excluded)

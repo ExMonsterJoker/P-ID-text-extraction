@@ -188,8 +188,8 @@ def interactive_conversion():
         format_choice = 'PNG'
 
     # Get thread count
-    thread_count = int(input("Enter thread count (1-4, default 1): ") or "1")
-    thread_count = max(1, min(4, thread_count))
+    thread_count = int(input("Enter thread count (1-12, default 1): ") or "1")
+    thread_count = max(1, min(12, thread_count))
 
     print(f"\nStarting conversion with:")
     print(f"DPI: {dpi}")

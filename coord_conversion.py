@@ -100,7 +100,7 @@ if __name__ == "__main__":
     # and save the converted files to the output_folder.
     input_folder = "data/processed/metadata/final_annotations"  # <<< CHANGE THIS to your input folder name
     output_folder = "data/outputs/final_visualizations"  # <<< CHANGE THIS to your desired output folder name
-    image_dpi = 600  # The DPI of the source images
+    image_dpi = 1200  # The DPI of the source images
 
     # Call the main function with the configured paths and DPI
     print(f"Starting conversion...")

@@ -5,38 +5,61 @@ pipeline:
   min_text_height: 6
   max_text_height: 100
   device: "cuda:0"  # or "cpu"
-  debug: True
+  debug: False
   debug_visualization: True
 
 # --- SAHI Slicer Configuration ---
 sahi_slicer:
-  tile_size: 1440
-  overlap_ratio: 0.5
+  tile_size: 720
+  overlap_ratio: 0.1
   min_area_ratio: 0.1
   verbose: False
 
 # --- Data Loader Paths ---
 data_loader:
+  image_dir: "data/raw"
   sahi_slicer_output_dir: "data/processed/tiles"
   metadata_output_dir: "data/processed/metadata"
-  tile_metadata_dir : "data/processed/metadata/tile_metadata"
-  group_detection_metadata_dir : "data/processed/metadata/group_detection_metadata"
-  global_metadata_dir : "data/processed/metadata/global_metadata"
-  detection_metadata_dir : "data/processed/metadata/detection_metadata"
-  core_tile_metadata_dir : "data/processed/metadata/core_tile_metadata"
-  core_detection_metadata_dir : "data/processed/metadata/core_detection_metadata"
+  group_detection_metadata_dir: "data/processed/metadata/group_detection_metadata"
+  global_metadata_dir: "data/processed/metadata/global_metadata"
+  detection_metadata_dir: "data/processed/metadata/detection_metadata"
+  cropping_output_dir: "data/processed/cropping"
+  text_recognition_output_dir: "data/processed/metadata/final_annotations"
 
-# --- OCR Configuration ---
+# --- Text Detection Configuration (Updated for CRAFT + TrOCR) ---
 ocr:
   languages: ['en']
   gpu: True
-  confidence_threshold: 0.4
-  rotation_angles: [0, 90]
+  # CRAFT Detection Parameters
+  detector: "craft"  # craft or dbnet18
+  text_threshold: 0.7  # Threshold for text detection confidence
+  link_threshold: 0.9  # Threshold for linking text components
+  low_text: 0.2        # Low text threshold for detection
+  height_ths : 0.1     # Maximum height difference between boxes (as fraction)
+  width_ths : 0.1      # Maximum horizontal gap between boxes (as fraction of box width)
+  slope_ths : 0.04     # Maximum slope difference between boxes to allow merging
+  ycenter_ths : 0.5    # Maximum vertical offset between box centers (as fraction of box height)
+  # TrOCR Recognition Parameters
+  confidence_threshold: 0.95  # Minimum confidence for TrOCR recognition results
+  model_name: "microsoft/trocr-small-printed"  # TrOCR model to use
   filter_overlaps: True
+  bbox_min_score: 0.4
+
+grouping:
+  high_overlap_threshold: 0.1  # IoU threshold for high overlap (character fragments)
+  high_iou_threshold: 0.95  # Very high IoU threshold for keeping larger box instead of merging
+  contained_box_threshold: 0.9  # IoL threshold for suppressing contained boxes (Step 0)
+  vertical_alignment_factor: 0.2  # For horizontal text: max vertical center distance = min_height * factor
+  horizontal_alignment_factor: 0.2  # For vertical text: max horizontal center distance = min_width * factor
+  proximity_factor: 1  # Max gap = max_dimension * factor
+  neighborhood_expansion_factor: 1  # Expansion factor for neighborhood filter (50% = 25% on each side)
 
 # --- Coordinate Conversion Configuration ---
 coordinate_conversion:
-  image_dpi: 600  # DPI for converting image coordinates to PDF points
+  image_dpi: 600
+  validate_dimensions: true
+  tolerance_percent: 5.0
+  pdf_base_dir: 'data/GS6'
   image_perspective_dir: "data/processed/metadata/final_annotations"
   pdf_perspective_dir: "data/outputs/json_pdf_perspective"
 
@@ -44,3 +67,8 @@ coordinate_conversion:
 visualization:
   # The directory where the final visualization images will be saved.
   output_dir: "data/outputs/visualizations_final"
+
+# --- Cropping Configuration ---
+cropping:
+  output_dir: "data/processed/cropping"
+  padding: 10
