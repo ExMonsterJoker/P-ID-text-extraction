@@ -7,11 +7,7 @@
     <list default="true" id="3cda8e01-a2d5-4f88-ab9f-b6d0a9d1f64d" name="Changes" comment="LGTM">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/configs/base.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/configs/base.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/re_ocr.yaml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/run_pipeline.py" beforeDir="false" afterPath="$PROJECT_DIR$/run_pipeline.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/convert_coord.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/convert_coord.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/cropping/cropping_Images.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/cropping/cropping_Images.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/text_detection/text_detection.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/text_detection/text_detection.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/text_detection/text_recognition.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/text_detection/text_recognition.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -73,6 +69,7 @@
     &quot;Python tests.Python tests in test_sahi_slicer.py.executor&quot;: &quot;Run&quot;,
     &quot;Python.Convert_Image_coordinate_to_PDF_coordinate.executor&quot;: &quot;Run&quot;,
     &quot;Python.PDF_to_image.executor&quot;: &quot;Run&quot;,
+    &quot;Python.__init__.executor&quot;: &quot;Run&quot;,
     &quot;Python.config_manager.executor&quot;: &quot;Run&quot;,
     &quot;Python.convert_coord.executor&quot;: &quot;Run&quot;,
     &quot;Python.convert_to_ppocr_format_annotations.executor&quot;: &quot;Run&quot;,
@@ -293,7 +290,15 @@
       <option name="project" value="LOCAL" />
       <updated>1753187731108</updated>
     </task>
-    <option name="localTasksCounter" value="17" />
+    <task id="LOCAL-00017" summary="LGTM">
+      <option name="closed" value="true" />
+      <created>1755005999919</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1755005999919</updated>
+    </task>
+    <option name="localTasksCounter" value="18" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">

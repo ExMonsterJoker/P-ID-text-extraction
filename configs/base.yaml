@@ -10,7 +10,7 @@ pipeline:
 
 # --- SAHI Slicer Configuration ---
 sahi_slicer:
-  tile_size: 2000
+  tile_size: 720
   overlap_ratio: 0.1
   min_area_ratio: 0.1
   verbose: False
@@ -41,7 +41,7 @@ ocr:
   ycenter_ths : 0.5    # Maximum vertical offset between box centers (as fraction of box height)
   # TrOCR Recognition Parameters
   confidence_threshold: 0.95  # Minimum confidence for TrOCR recognition results
-  model_name: "microsoft/trocr-base-printed"  # TrOCR model to use
+  model_name: "microsoft/trocr-small-printed"  # TrOCR model to use
   filter_overlaps: True
   bbox_min_score: 0.4
 
