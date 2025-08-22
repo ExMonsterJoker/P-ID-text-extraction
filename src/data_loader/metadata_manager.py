@@ -117,18 +117,6 @@ class MetadataManager:
             data = json.load(f)
         return [TileMetadata(**t) for t in data["tiles"]]
 
-    def init_global_metadata(self, source_image: str, config: Dict[str, Any]) -> GlobalMetadata:
-        import datetime
-        from hashlib import md5
-        config_str = json.dumps(config, sort_keys=True)
-        config_hash = md5(config_str.encode()).hexdigest()[:8]
-        return GlobalMetadata(
-            source_image=source_image,
-            processing_time=datetime.datetime.now().isoformat(),
-            pipeline_version=self.pipeline_version,
-            config_hash=config_hash
-        )
-
     def save_global_metadata(self, metadata: GlobalMetadata):
         base_name = os.path.splitext(os.path.basename(metadata.source_image))[0]
         output_path = os.path.join(self.global_metadata_dir, f"{base_name}_global.json")

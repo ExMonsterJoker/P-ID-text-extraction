@@ -9,9 +9,13 @@ from dataclasses import dataclass
 from sahi.slicing import slice_image
 import json
 import yaml
+
 # Disable PIL image size limits at module level
 Image.MAX_IMAGE_PIXELS = None
 PIL.Image.MAX_IMAGE_PIXELS = None
+
+# Import the get_config helper
+from configs import get_config
 
 
 @dataclass
@@ -27,16 +31,17 @@ class TileMetadata:
 
 
 class SahiSlicer:
-    def __init__(self, config: Dict[str, Any]):
+    def __init__(self):
         """
-        Initialize SAHI-based image slicer
+        Initialize SAHI-based image slicer.
+        Configuration is fetched automatically from the global config manager.
+        """
+        # Fetch the configuration for the 'sahi_slicer' section
+        config = get_config('sahi_slicer')
 
-        Args:
-            config: Configuration dictionary with slicing parameters
-        """
         self.tile_size = config.get("tile_size", 512)
         self.overlap_ratio = config.get("overlap_ratio", 0.5)
-        self.min_area_ratio = config.get("min_area_ratio", 0.2)
+        self.min_area_ratio = config.get("min_area_ratio", 0.1)
         self.verbose = config.get("verbose", False)
 
         # Validate parameters
@@ -212,15 +217,10 @@ class SahiSlicer:
         return metadata_list
 if __name__ == "__main__":
     import glob
+    import logging
 
-    # Define configuration for the slicer
-    config = {
-        "tile_size": 1080,
-        "overlap_ratio": 0.5,
-        "min_area_ratio": 0.1,
-        "verbose": True
-    }
-
+    # Setup basic logging for testing
+    logging.basicConfig(level=logging.INFO)
 
     os.makedirs("data/processed/tiles", exist_ok=True)
     os.makedirs("data/processed/metadata", exist_ok=True)
@@ -231,8 +231,9 @@ if __name__ == "__main__":
     os.makedirs("data/processed/metadata/core_tile_metadata", exist_ok=True)
     os.makedirs("data/processed/metadata/core_detection_metadata", exist_ok=True)
 
-    # Initialize the slicer
-    slicer = SahiSlicer(config)
+    # Initialize the slicer - no config needed here!
+    slicer = SahiSlicer()
+    logging.info(f"Slicer initialized with config: tile_size={slicer.tile_size}, overlap_ratio={slicer.overlap_ratio}")
 
     # Get all image files from data/raw folder
     raw_dir = os.path.join("data", "raw")
