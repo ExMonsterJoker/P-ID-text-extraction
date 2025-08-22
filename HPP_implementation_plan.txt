@@ -1,0 +1,150 @@
+# **HPP Implementation Plan Summary**
+
+## **Pipeline Flow Changes**
+```
+CURRENT: Detection → Grouping → Cropping → Recognition
+NEW: Detection → Grouping → Cropping → HPP Segmentation → Re-cropping → Recognition
+```
+
+## **New Files to Create**
+
+### **1. `src/segmentation/` (New Module)**
+```
+src/segmentation/
+├── __init__.py
+├── hpp_segmenter.py     # Main HPP logic
+└── preprocessing.py     # Image preprocessing utilities
+```
+
+### **2. `src/segmentation/hpp_segmenter.py`**
+**Key Classes & Methods:**
+- `HPPSegmenter` class
+- `segment_multiline_crop()` - Main segmentation function
+- `is_multiline_candidate()` - Detect if crop needs segmentation
+- `_segment_horizontal_lines()` - HPP for horizontal text
+- `_segment_vertical_lines()` - HPP for vertical text
+- `_find_valleys()` - Valley detection in projection profiles
+- `_create_line_boxes()` - Generate new bounding boxes for segments
+
+### **3. `src/segmentation/preprocessing.py`**
+**Preprocessing Functions:**
+- `preprocess_pid_for_hpp()` - P&ID optimized preprocessing
+- `enhanced_preprocess_for_hpp()` - Advanced preprocessing
+- Options: grayscale, denoising, contrast enhancement, adaptive thresholding
+
+## **Files to Modify**
+
+### **1. `run_pipeline.py`**
+**Changes:**
+- Add new step: `'segment': run_hpp_segmentation_step`
+- Add new step: `'recrop': run_line_cropping_step` 
+- Update pipeline steps order:
+  ```python
+  pipeline_steps = {
+      'pdf': ...,
+      'slice': ...,
+      'meta': ...,
+      'detect': ...,
+      'group': ...,
+      'crop': run_cropping_step,           # First crop
+      'segment': run_hpp_segmentation_step, # HPP segmentation
+      'recrop': run_line_cropping_step,     # Second crop
+      'recognize': ...,
+      'coord': ...,
+      'viz': ...
+  }
+  ```
+
+**New Functions:**
+- `run_hpp_segmentation_step()` - Apply HPP to cropped images
+- `run_line_cropping_step()` - Create final line crops for TrOCR
+
+### **2. `cropping_Images.py`**
+**Add New Function:**
+- `crop_segmented_lines()` - Function for second cropping step after HPP
+
+### **3. Config Files**
+**New Configuration Section:**
+```yaml
+# hpp_segmentation config
+hpp_segmentation:
+  # Multiline detection thresholds
+  multiline_height_threshold: 40  # For horizontal text
+  multiline_width_threshold: 40   # For vertical text
+  
+  # HPP algorithm parameters
+  min_line_height: 5
+  valley_threshold: 0.1
+  
+  # Preprocessing options
+  light_denoising: true
+  enhance_contrast: true
+  noise_reduction: false
+  use_adaptive_threshold: false
+  
+  # Output directories
+  segmented_crops_dir: 'data/processed/segmented_cropping'
+```
+
+## **Implementation Approach**
+
+### **HPP Algorithm Core Logic:**
+1. **Multiline Detection**: Check if crop dimensions suggest multiple lines
+2. **Preprocessing**: Convert to grayscale, apply light denoising/contrast enhancement
+3. **Projection Profile**: Calculate horizontal/vertical pixel sum profiles
+4. **Valley Detection**: Find gaps between text lines using profile minima
+5. **Line Separation**: Split original crop at valley points
+6. **Coordinate Mapping**: Update bounding box coordinates for each line segment
+
+### **Two-Cropping Strategy:**
+1. **First Crop**: After grouping (existing functionality)
+2. **HPP Processing**: On cropped images to find line segments
+3. **Second Crop**: Individual line segments for TrOCR
+
+### **Orientation Handling:**
+- **Horizontal Text**: Use horizontal projection profile (sum across width)
+- **Vertical Text**: Use vertical projection profile (sum across height)
+- **Mixed Orientation**: Process each crop based on its detected orientation
+
+## **Key Technical Details**
+
+### **Valley Detection Algorithm:**
+- Calculate projection profile variance
+- Find local minima below threshold
+- Filter valleys by minimum separation distance
+- Handle edge cases (single line, no clear valleys)
+
+### **Coordinate System Management:**
+- Track coordinate transformations through cropping steps
+- Maintain global coordinates for final output
+- Handle padding adjustments in both crop steps
+
+### **Error Handling:**
+- Fallback to original crop if HPP fails
+- Validate line segment dimensions
+- Skip HPP for crops below size thresholds
+
+## **Integration Points**
+
+### **Data Flow:**
+```
+Grouped Boxes → First Crop → manifest.json
+                     ↓
+               HPP Analysis → Line Segments
+                     ↓
+               Second Crop → segmented_manifest.json → TrOCR
+```
+
+### **File Structure Changes:**
+```
+data/processed/
+├── cropping/                    # First crop (grouped boxes)
+│   └── [image_name]/
+│       ├── crop_0001.png        # Grouped crops
+│       └── manifest.json        # Original manifest
+└── segmented_cropping/          # Second crop (line segments)
+    └── [image_name]/
+        ├── crop_0001_line_01.png # Individual line crops
+        ├── crop_0001_line_02.png
+        └── segmented_manifest.json # Final manifest for TrOCR
+```

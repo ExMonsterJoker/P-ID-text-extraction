@@ -5,9 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="3cda8e01-a2d5-4f88-ab9f-b6d0a9d1f64d" name="Changes" comment="LGTM">
+      <change afterPath="$PROJECT_DIR$/HPP_implementation_plan.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configs/base.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/configs/base.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/cropping/cropping_Images.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/cropping/cropping_Images.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/debug_visualize_filters.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/debug_visualize_tiles.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/text_detection/text_recognition.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/text_detection/text_recognition.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -89,7 +90,7 @@
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
     &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;TestNewGrouping&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;simplify-config-parameters&quot;,
     &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
     &quot;ignore_missing_gitignore&quot;: &quot;true&quot;,
     &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,

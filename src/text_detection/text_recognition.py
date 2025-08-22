@@ -132,7 +132,9 @@ class TrOCRTextRecognition:
 
     def process_cropped_images(self, input_dir: str, output_dir: str) -> None:
         logging.info("Starting text recognition on cropped images (TrOCR + EasyOCR fallback)")
+
         os.makedirs(output_dir, exist_ok=True)
+
         crop_folders = [d for d in glob(os.path.join(input_dir, '*')) if os.path.isdir(d)]
 
         total_images_processed = 0
@@ -140,10 +142,16 @@ class TrOCRTextRecognition:
         trocr_success_count = 0
         easyocr_success_count = 0
 
-        for folder in crop_folders:
+        total_folders = len(crop_folders)
+
+        for idx, folder in enumerate(crop_folders, 1):
             try:
                 base_name = os.path.basename(folder)
+
+                logging.info(f"Processing folder {idx}/{total_folders}: {base_name}")
+
                 manifest_path = os.path.join(folder, "manifest.json")
+
                 if not os.path.exists(manifest_path):
                     logging.warning(f"Manifest not found in {folder}. Skipping.")
                     continue
@@ -152,10 +160,12 @@ class TrOCRTextRecognition:
                     manifest = json.load(f)
 
                 original_image_size = manifest[0].get('original_image_size') if manifest else None
+
                 final_annotations = []
 
                 for item in manifest:
                     crop_path = os.path.join(folder, item['crop_filename'])
+
                     if not os.path.exists(crop_path):
                         continue
 
@@ -169,10 +179,13 @@ class TrOCRTextRecognition:
                             "crop_filename": item['crop_filename'],
                             "ocr_method": recognition_result['method']
                         }
+
                         if recognition_result['method'] == "EasyOCR" and 'easyocr_detections' in recognition_result:
                             annotation["easyocr_detections"] = recognition_result['easyocr_detections']
+
                         if original_image_size:
                             annotation["original_image_size"] = original_image_size
+
                         final_annotations.append(annotation)
 
                         if recognition_result['method'] == "TrOCR":
@@ -182,11 +195,15 @@ class TrOCRTextRecognition:
 
                 if final_annotations:
                     output_json_path = os.path.join(output_dir, f"{base_name}_final.json")
+
                     with open(output_json_path, 'w') as f:
                         json.dump(final_annotations, f, indent=2)
 
-                    total_crops_recognized += len(final_annotations)
-                    total_images_processed += 1
+                total_crops_recognized += len(final_annotations)
+                total_images_processed += 1
+
+                logging.info(
+                    f"Finished processing folder {idx}/{total_folders}: {base_name}. Recognized {len(final_annotations)} crops.")
 
             except Exception as e:
                 logging.error(f"Error processing folder {folder}: {e}", exc_info=True)
