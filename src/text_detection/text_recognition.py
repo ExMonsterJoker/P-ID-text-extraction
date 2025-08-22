@@ -13,41 +13,26 @@ from torch.nn import functional as F
 
 class TrOCRTextRecognition:
     def __init__(self):
-        """
-        Initializes the TrOCR text recognizer.
-        Configuration is fetched automatically.
-        """
+        """Initializes the TrOCR text recognizer."""
         self.config = get_config('ocr')
-        logging.info(f"Loaded OCR config: {self.config}")
-        if not self.config:
-            logging.error("OCR configuration could not be loaded. Exiting.")
-            # Added a return to stop initialization if config is missing
-            return
-
         self.device = torch.device("cuda" if torch.cuda.is_available() and self.config.get('gpu', True) else "cpu")
         self.min_confidence = self.config.get('confidence_threshold', 0.95)
         self.model_name = self.config.get('model_name', "microsoft/trocr-small-printed")
-
         self.processor = None
         self.model = None
         self.easyocr_reader = None
-
         self._load_models()
 
     def _load_models(self):
         try:
-            logging.info(f"Loading TrOCR model: {self.model_name}")
+            logging.info(f"Loading TrOCR model: {self.model_name} to {self.device}")
             self.processor = TrOCRProcessor.from_pretrained(self.model_name)
-            self.model = VisionEncoderDecoderModel.from_pretrained(self.model_name)
-            self.model.to(self.device)
+            self.model = VisionEncoderDecoderModel.from_pretrained(self.model_name).to(self.device)
             self.model.eval()
-            logging.info(f"TrOCR model loaded successfully on {self.device}")
-
             logging.info("Initializing EasyOCR reader")
             self.easyocr_reader = easyocr.Reader(['en'])
-            logging.info("EasyOCR reader initialized successfully")
         except Exception as e:
-            logging.error(f"Failed to load models: {e}")
+            logging.error(f"Failed to load models: {e}", exc_info=True)
             raise
 
     def _rotate_image_90_clockwise(self, image: Image.Image) -> Image.Image:
@@ -55,33 +40,18 @@ class TrOCRTextRecognition:
 
     def _recognize_with_trocr(self, image: Image.Image) -> Optional[Dict]:
         try:
-            pixel_values = self.processor(image, return_tensors="pt").pixel_values
-            pixel_values = pixel_values.to(self.device)
-
+            pixel_values = self.processor(image, return_tensors="pt").pixel_values.to(self.device)
             with torch.no_grad():
-                outputs = self.model.generate(
-                    pixel_values,
-                    output_scores=True,
-                    return_dict_in_generate=True
-                )
-                generated_ids = outputs.sequences
-                generated_text = self.processor.batch_decode(generated_ids, skip_special_tokens=True)[0]
+                outputs = self.model.generate(pixel_values, output_scores=True, return_dict_in_generate=True)
+                generated_text = self.processor.batch_decode(outputs.sequences, skip_special_tokens=True)[0]
 
-                tokens = generated_ids[0]
-                scores_per_step = outputs.scores
-                token_confidences = []
-                for token_id, step_logits in zip(tokens[1:], scores_per_step):
-                    probs = F.softmax(step_logits, dim=-1)
-                    token_confidences.append(probs[0, token_id].item())
-                confidence = sum(token_confidences) / len(token_confidences) if token_confidences else 0.0
+                # Simplified confidence score calculation
+                probs = torch.log_softmax(outputs.scores[0], dim=-1)
+                confidence = probs.max().exp().item()
 
-            return {
-                "text": generated_text.strip(),
-                "confidence": confidence,
-                "method": "TrOCR"
-            }
+            return {"text": generated_text.strip(), "confidence": confidence, "method": "TrOCR"}
         except Exception as e:
-            logging.error(f"Error in TrOCR recognition: {e}")
+            logging.error(f"Error in TrOCR recognition: {e}", exc_info=True)
             return None
 
     def _recognize_with_easyocr(self, image: Image.Image) -> Optional[Dict]:
@@ -89,23 +59,12 @@ class TrOCRTextRecognition:
             image_np = np.array(image)
             results = self.easyocr_reader.readtext(image_np)
             if results:
-                combined_text = " ".join([result[1] for result in results])
-                avg_confidence = sum([result[2] for result in results]) / len(results)
-                return {
-                    "text": combined_text.strip(),
-                    "confidence": avg_confidence,
-                    "method": "EasyOCR",
-                    "easyocr_detections": len(results)
-                }
-            else:
-                return {
-                    "text": "",
-                    "confidence": 0.0,
-                    "method": "EasyOCR",
-                    "easyocr_detections": 0
-                }
+                combined_text = " ".join([res[1] for res in results])
+                avg_confidence = sum([res[2] for res in results]) / len(results)
+                return {"text": combined_text.strip(), "confidence": avg_confidence, "method": "EasyOCR"}
+            return {"text": "", "confidence": 0.0, "method": "EasyOCR"}
         except Exception as e:
-            logging.error(f"Error in EasyOCR recognition: {e}")
+            logging.error(f"Error in EasyOCR recognition: {e}", exc_info=True)
             return None
 
     def recognize_text(self, image_path: str, manifest_item: Dict = None) -> Optional[Dict]:
@@ -121,133 +80,83 @@ class TrOCRTextRecognition:
                 image_for_easyocr = self._rotate_image_90_clockwise(image)
 
             easyocr_result = self._recognize_with_easyocr(image_for_easyocr)
-
-            if easyocr_result and easyocr_result['text']:
-                return easyocr_result
-            else:
-                return trocr_result if trocr_result else None
+            return easyocr_result if easyocr_result and easyocr_result['text'] else trocr_result
         except Exception as e:
-            logging.error(f"Error recognizing text from {image_path}: {e}")
+            logging.error(f"Error recognizing text from {image_path}: {e}", exc_info=True)
             return None
 
-    def process_cropped_images(self, input_dir: str, output_dir: str) -> None:
-        logging.info("Starting text recognition on cropped images (TrOCR + EasyOCR fallback)")
-
+    def process_cropped_images(self, input_dir: str, output_dir: str, manifest_filename: str):
+        logging.info(f"Starting text recognition on images in '{input_dir}' using '{manifest_filename}'")
         os.makedirs(output_dir, exist_ok=True)
 
-        crop_folders = [d for d in glob(os.path.join(input_dir, '*')) if os.path.isdir(d)]
+        for folder in glob(os.path.join(input_dir, '*')):
+            if not os.path.isdir(folder): continue
 
-        total_images_processed = 0
-        total_crops_recognized = 0
-        trocr_success_count = 0
-        easyocr_success_count = 0
+            base_name = os.path.basename(folder)
+            logging.info(f"Processing folder: {base_name}")
+            manifest_path = os.path.join(folder, manifest_filename)
 
-        total_folders = len(crop_folders)
+            if not os.path.exists(manifest_path):
+                logging.warning(f"Manifest '{manifest_filename}' not found in {folder}. Skipping.")
+                continue
 
-        for idx, folder in enumerate(crop_folders, 1):
-            try:
-                base_name = os.path.basename(folder)
+            with open(manifest_path, 'r') as f:
+                manifest = json.load(f)
 
-                logging.info(f"Processing folder {idx}/{total_folders}: {base_name}")
+            final_annotations = []
+            for item in manifest:
+                crop_path = os.path.join(folder, item['crop_filename'])
+                if not os.path.exists(crop_path): continue
 
-                manifest_path = os.path.join(folder, "manifest.json")
+                result = self.recognize_text(crop_path, item)
+                if result and result['text']:
+                    final_annotations.append({
+                        "text": result['text'],
+                        "confidence": float(result['confidence']),
+                        "bbox": item['original_bbox'],
+                        "crop_filename": item['crop_filename'],
+                        "ocr_method": result['method'],
+                        "original_image_size": item.get('original_image_size')
+                    })
 
-                if not os.path.exists(manifest_path):
-                    logging.warning(f"Manifest not found in {folder}. Skipping.")
-                    continue
+            if final_annotations:
+                output_json_path = os.path.join(output_dir, f"{base_name}_final.json")
+                with open(output_json_path, 'w') as f:
+                    json.dump(final_annotations, f, indent=2)
+                logging.info(f"Recognized {len(final_annotations)} crops in {base_name}.")
 
-                with open(manifest_path, 'r') as f:
-                    manifest = json.load(f)
-
-                original_image_size = manifest[0].get('original_image_size') if manifest else None
-
-                final_annotations = []
-
-                for item in manifest:
-                    crop_path = os.path.join(folder, item['crop_filename'])
-
-                    if not os.path.exists(crop_path):
-                        continue
-
-                    recognition_result = self.recognize_text(crop_path, item)
-
-                    if recognition_result and recognition_result['text']:
-                        annotation = {
-                            "text": recognition_result['text'],
-                            "confidence": float(recognition_result['confidence']),
-                            "bbox": item['original_bbox'],
-                            "crop_filename": item['crop_filename'],
-                            "ocr_method": recognition_result['method']
-                        }
-
-                        if recognition_result['method'] == "EasyOCR" and 'easyocr_detections' in recognition_result:
-                            annotation["easyocr_detections"] = recognition_result['easyocr_detections']
-
-                        if original_image_size:
-                            annotation["original_image_size"] = original_image_size
-
-                        final_annotations.append(annotation)
-
-                        if recognition_result['method'] == "TrOCR":
-                            trocr_success_count += 1
-                        elif recognition_result['method'] == "EasyOCR":
-                            easyocr_success_count += 1
-
-                if final_annotations:
-                    output_json_path = os.path.join(output_dir, f"{base_name}_final.json")
-
-                    with open(output_json_path, 'w') as f:
-                        json.dump(final_annotations, f, indent=2)
-
-                total_crops_recognized += len(final_annotations)
-                total_images_processed += 1
-
-                logging.info(
-                    f"Finished processing folder {idx}/{total_folders}: {base_name}. Recognized {len(final_annotations)} crops.")
-
-            except Exception as e:
-                logging.error(f"Error processing folder {folder}: {e}", exc_info=True)
-
-        logging.info(f"Total images processed: {total_images_processed}")
-        logging.info(f"Total crops with recognized text: {total_crops_recognized}")
-        logging.info(f"Successful TrOCR recognitions: {trocr_success_count}")
-        logging.info(f"Successful EasyOCR fallback recognitions: {easyocr_success_count}")
-
-
-def run_text_recognition_step() -> None:
+def run_text_recognition_step(specific_dir: Optional[str] = None):
     """
-    Runs the full text recognition step, including TrOCR and EasyOCR fallback.
-    Fetches all required configuration internally.
+    Runs the text recognition step. If a specific_dir is provided, it processes
+    that directory with 'segmented_manifest.json'. Otherwise, it uses the default
+    cropping directory with 'manifest.json'.
     """
-    logging.info("--- Starting Step: Text Recognition (TrOCR + EasyOCR Fallback) ---")
+    logging.info("--- Starting Step: Text Recognition ---")
     try:
-        # Get required configuration sections
         data_loader_config = get_config('data_loader')
-        cropping_config = get_config('cropping')
+        output_dir = data_loader_config.get('text_recognition_output_dir')
 
-        # Determine input/output directories from config
-        input_dir = cropping_config.get('output_dir', 'data/processed/cropping')
-        output_dir = data_loader_config.get('text_recognition_output_dir', 'data/processed/metadata/final_annotations')
+        if specific_dir:
+            input_dir = specific_dir
+            manifest_filename = "segmented_manifest.json"
+        else:
+            cropping_config = get_config('cropping')
+            input_dir = cropping_config.get('output_dir')
+            manifest_filename = "manifest.json"
 
+        logging.info(f"Input directory: {input_dir}, Manifest: {manifest_filename}")
         if not os.path.exists(input_dir):
-            logging.error(f"Input directory for text recognition not found: {input_dir}")
+            logging.error(f"Input directory not found: {input_dir}")
             return
 
-        # Initialize the recognizer (it will fetch its own 'ocr' config)
         recognizer = TrOCRTextRecognition()
-        recognizer.process_cropped_images(input_dir, output_dir)
+        recognizer.process_cropped_images(input_dir, output_dir, manifest_filename)
 
     except Exception as e:
         logging.error(f"Error in text recognition step: {e}", exc_info=True)
         raise
-    logging.info("--- Finished Step: Text Recognition (TrOCR + EasyOCR Fallback) ---")
-
+    logging.info("--- Finished Step: Text Recognition ---")
 
 if __name__ == "__main__":
-    # Example usage for testing
-    logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(message)s')
-
-    # No need to get config here, the functions will do it.
-    logging.info("Running text recognition step for testing...")
+    logging.basicConfig(level=logging.INFO)
     run_text_recognition_step()
-    logging.info("Text recognition step finished.")

@@ -72,3 +72,22 @@ visualization:
 cropping:
   output_dir: "data/processed/cropping"
   padding: 10
+
+# hpp_segmentation config
+hpp_segmentation:
+  # Multiline detection thresholds
+  multiline_height_threshold: 40  # For horizontal text
+  multiline_width_threshold: 40   # For vertical text
+
+  # HPP algorithm parameters
+  min_line_height: 5
+  valley_threshold: 0.1
+
+  # Preprocessing options
+  light_denoising: True
+  enhance_contrast: True
+  noise_reduction: False
+  use_adaptive_threshold: False
+
+  # Output directories
+  segmented_crops_dir: 'data/processed/segmented_cropping'

@@ -1,7 +1,13 @@
 # Main OCR Engine
 easyocr
+craft-text-detector-updated
+transformers
+torch
+PyPDF2
+pdf2image
 
 # Core Libraries
+scipy
 numpy
 pandas
 opencv-python-headless
