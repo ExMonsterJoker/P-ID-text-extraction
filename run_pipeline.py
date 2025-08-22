@@ -161,12 +161,65 @@ def run_text_detection_step():
         logging.warning("No sliced image directories found for text detection.")
         return
 
+    total_tiles_processed, total_detections_found = 0, 0
     for image_dir in image_dirs:
-        image_name = os.path.basename(image_dir)
-        logging.info(f"Processing text detection for image: {image_name}")
-        image_detection_dir = os.path.join(detection_metadata_dir, image_name)
-        os.makedirs(image_detection_dir, exist_ok=True)
-        # ... (rest of the function)
+        try:
+            image_name = os.path.basename(image_dir)
+            logging.info(f"Processing text detection for image: {image_name}")
+            image_detection_dir = os.path.join(detection_metadata_dir, image_name)
+            os.makedirs(image_detection_dir, exist_ok=True)
+
+            tiles_metadata_path = os.path.join(image_dir, "tiles_metadata.json")
+            if not os.path.exists(tiles_metadata_path):
+                logging.warning(f"No tiles metadata found for {image_name}. Skipping.")
+                continue
+
+            with open(tiles_metadata_path, 'r') as f:
+                tiles_metadata = json.load(f)
+
+            source_image = tiles_metadata.get("source_image", "")
+            original_image_size = tiles_metadata.get("original_size", [])
+
+            tile_files = glob(os.path.join(image_dir, "tile_*.png"))
+            image_detections_count = 0
+            for tile_file in tile_files:
+                try:
+                    tile_id = Path(tile_file).stem.replace("tile_", "")
+                    detections = detector.detect_text(tile_file)
+                    if not detections: continue
+
+                    tile_meta = next((t for t in tiles_metadata.get('tiles', []) if t.get('tile_id') == tile_id), None)
+                    if not tile_meta:
+                        logging.warning(f"No metadata found for tile {tile_id}")
+                        continue
+
+                    tile_detections = [
+                        {
+                            'bbox': d.bbox, 'bbox_normalized': d.bbox_normalized, 'rotation_angle': d.rotation_angle,
+                            'tile_id': tile_id, 'tile_path': tile_file, 'tile_coordinates': tile_meta.get('coordinates', []),
+                            'grid_position': tile_meta.get('grid_position', []), 'source_image': source_image,
+                            'original_image_size': original_image_size, 'detection_type': 'craft_detection',
+                            'tile_size': tile_meta.get('tile_size', [])
+                        } for d in detections
+                    ]
+
+                    if tile_detections:
+                        with open(os.path.join(image_detection_dir, f"{tile_id}_ocr.json"), 'w') as f:
+                            json.dump(tile_detections, f, indent=2)
+                        image_detections_count += len(tile_detections)
+                        total_tiles_processed += 1
+
+                except Exception as e:
+                    logging.error(f"Error processing tile {tile_file}: {e}")
+
+            total_detections_found += image_detections_count
+            logging.info(f"Completed {image_name}: {image_detections_count} detections from {len(tile_files)} tiles")
+
+        except Exception as e:
+            logging.error(f"Error processing image directory {image_dir}: {e}", exc_info=True)
+
+    logging.info(f"Text detection completed. Total detections: {total_detections_found}")
+
 
 def run_grouping_and_filtering_step(grouping_args: argparse.Namespace):
     """Runs text grouping and filtering."""
@@ -189,19 +242,44 @@ def run_cropping_step():
     padding = cropping_config.get('padding', 10)
     os.makedirs(output_dir, exist_ok=True)
 
+    if not os.path.exists(grouped_text_dir):
+        logging.error(f"Grouped text directory not found: {grouped_text_dir}")
+        return
+
     json_files = glob(os.path.join(grouped_text_dir, '*.json'))
     if not json_files:
         logging.warning(f"No JSON files found in: {grouped_text_dir}")
         return
 
+    total_crops, total_images = 0, 0
     for json_file in json_files:
-        base_name = Path(json_file).stem.replace('_grouped_text', '').replace('_grouped', '')
-        logging.info(f"Processing cropping for: {base_name}")
-        image_path = next((p for ext in ['png', 'jpg', 'jpeg', 'tiff'] for p in glob(os.path.join(image_source_dir, f"{base_name}.{ext}"))), None)
-        if not image_path:
-            logging.warning(f"  - Could not find source image for '{base_name}'. Skipping.")
-            continue
-        # ... (rest of the function)
+        try:
+            base_name = Path(json_file).stem.replace('_grouped_text', '').replace('_grouped', '')
+            logging.info(f"Processing cropping for: {base_name}")
+
+            image_path = next((p for ext in ['png', 'jpg', 'jpeg', 'tiff'] for p in glob(os.path.join(image_source_dir, f"{base_name}.{ext}"))), None)
+            if not image_path:
+                logging.warning(f"  - Could not find source image for '{base_name}'. Skipping.")
+                continue
+
+            with open(json_file, 'r') as f:
+                detections = json.load(f)
+            if not detections: continue
+
+            image_output_dir = os.path.join(output_dir, base_name)
+            os.makedirs(image_output_dir, exist_ok=True)
+
+            manifest_entries = crop_image(image_path, detections, image_output_dir, padding)
+            if manifest_entries:
+                with open(os.path.join(image_output_dir, "manifest.json"), 'w') as f:
+                    json.dump(manifest_entries, f, indent=2)
+                total_crops += len(manifest_entries)
+                total_images += 1
+                logging.info(f"  - Created {len(manifest_entries)} crops.")
+        except Exception as e:
+            logging.error(f"Error processing {json_file}: {e}", exc_info=True)
+
+    logging.info(f"Cropping completed. Total crops: {total_crops} from {total_images} images.")
 
 
 def run_hpp_segmentation_step():
@@ -325,28 +403,60 @@ def run_line_cropping_step():
     logging.info(f"Line cropping completed. Total line crops created: {total_line_crops}")
 
 
-def run_text_recognition_step_pipeline():
-    """Wrapper for the text recognition step."""
-    logging.info("--- Starting Step 8: Text Recognition ---")
-    hpp_config = get_config('hpp_segmentation')
-    input_dir = hpp_config.get('segmented_crops_dir')
-    run_text_recognition_step(specific_dir=input_dir)
+def run_re_ocr_step():
+    """Runs re-OCR on cropped images."""
+    # This step is now part of the 'recognize' step using TrOCR + EasyOCR fallback.
+    # Kept for compatibility if needed, but the main logic is in run_text_recognition_step.
+    logging.warning("Skipping deprecated re-OCR step. Use 'recognize' step instead.")
 
 
 def run_coordinate_conversion_step():
     """Converts image coordinates to PDF points."""
     logging.info("--- Starting Step: Coordinate Conversion ---")
-    # ...
+    coord_config = get_config('coordinate_conversion')
+    data_loader_config = get_config('data_loader')
+
+    input_dir_json = data_loader_config.get('text_recognition_output_dir', 'data/processed/metadata/final_annotations')
+    if not os.path.exists(input_dir_json):
+        logging.warning(f"Input JSON directory not found: {input_dir_json}. Skipping coordinate conversion.")
+        return
+
+    run_coordinate_conversion(
+        input_dir_json_dir=input_dir_json,
+        image_perspective_dir=coord_config.get('image_perspective_dir'),
+        pdf_perspective_dir=coord_config.get('pdf_perspective_dir'),
+        dpi=coord_config.get('image_dpi', 600)
+    )
+    logging.info("--- Finished Step: Coordinate Conversion ---")
+
 
 def run_visualization_step():
     """Visualizes final text detections."""
     logging.info("--- Starting Step: Final Visualization ---")
-    # ...
+    viz_config = get_config('visualization')
+    pipeline_config = get_config('pipeline')
+    text_recognition_config = get_config('data_loader')
+
+    visualize_annotations(
+        image_dir=pipeline_config.get('input_dir'),
+        json_dir=text_recognition_config.get('text_recognition_output_dir'),
+        output_dir=viz_config.get('output_dir')
+    )
+    logging.info("--- Finished Step: Final Visualization ---")
+
+
+def run_text_recognition_step_pipeline():
+    """Wrapper for the text recognition step."""
+    hpp_config = get_config('hpp_segmentation')
+    input_dir = hpp_config.get('segmented_crops_dir')
+    run_text_recognition_step(specific_dir=input_dir)
+
 
 def main():
     """Main function to orchestrate the entire P&ID text extraction pipeline."""
     parser = argparse.ArgumentParser(description="P&ID Text Extraction Master Pipeline")
-    parser.add_argument("--input-dir", type=str, default="data/raw", help="Directory for raw images.")
+    parser.add_argument("--input-dir", type=str, default="data/raw", help="Directory containing raw P&ID images.")
+    parser.add_argument("--config-dir", type=str, default="configs", help="Directory for config files (used by manager).")
     parser.add_argument("--start-at", type=str, default="pdf",
                         choices=['pdf', 'slice', 'meta', 'detect', 'group', 'crop', 'segment', 'recrop', 'recognize', 'coord', 'viz'],
                         help="The pipeline step to start from.")
@@ -360,12 +470,14 @@ def main():
     setup_logging()
     logging.info("=============================================")
     logging.info("= P&ID Text Extraction Pipeline Started =")
+    logging.info("=============================================")
+    logging.info(f"Start Time: {datetime.datetime.now()}")
     logging.info(f"Arguments: {args}")
 
     grouping_args = argparse.Namespace(debug=args.debug_grouping)
 
     pipeline_steps = {
-        'pdf': lambda: run_pdf_conversion_step(args.input_dir),
+        'pdf': lambda: run_pdf_conversion_step(args.input_dir) if not args.no_pdf else logging.info("Skipping PDF conversion."),
         'slice': lambda: run_slicing_step(args.input_dir),
         'meta': run_metadata_step,
         'detect': run_text_detection_step,
